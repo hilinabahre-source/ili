@@ -1017,11 +1017,23 @@ scene.add(new THREE.AmbientLight(0xffffff, 0.8));
 const light = new THREE.DirectionalLight(0xffffff, 0.9);
 light.position.set(2, 4, 3);
 scene.add(light);
+let avatarRoot = null;
+const HEIGHT_DRIFT_COEFF = 0.013;
+let sliderState = { waist: 0, bust: 0, hip: 0 };
 
+function updateHeightCompensation() {
+  if (!avatarRoot) return;
+  const totalDrift =
+    Math.abs(sliderState.waist / 100) +
+    Math.abs(sliderState.bust / 100) +
+    Math.abs(sliderState.hip / 100);
+  const compensation = 1 - (totalDrift * HEIGHT_DRIFT_COEFF);
+  avatarRoot.scale.y = compensation;
+}
 let bodyMeshes = [];
 
 new GLTFLoader().load('./avatar_shapekey.glb', (gltf) => {
-  scene.add(gltf.scene);
+  scene.add(gltf.scene);  avatarRoot = gltf.scene;
   gltf.scene.traverse((child) => {
     if (child.isMesh && child.morphTargetDictionary) {
       bodyMeshes.push(child);
@@ -1043,14 +1055,20 @@ function applySlider(sliderVal, minKey, maxKey) {
 document.getElementById('waistSlider').addEventListener('input', (e) => {
   document.getElementById('waistVal').textContent = e.target.value;
   applySlider(parseFloat(e.target.value), 'waist_min', 'waist_max');
+  sliderState.waist = parseFloat(e.target.value);
+  updateHeightCompensation();
 });
 document.getElementById('bustSlider').addEventListener('input', (e) => {
   document.getElementById('bustVal').textContent = e.target.value;
   applySlider(parseFloat(e.target.value), 'bust_min', 'bust_max');
+    sliderState.bust = parseFloat(e.target.value);
+  updateHeightCompensation();
 });
 document.getElementById('hipSlider').addEventListener('input', (e) => {
   document.getElementById('hipVal').textContent = e.target.value;
   applySlider(parseFloat(e.target.value), 'hip_min', 'hip_max');
+    sliderState.hip = parseFloat(e.target.value);
+  updateHeightCompensation();
 });
 
 function animate() {
