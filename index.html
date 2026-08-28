@@ -1018,25 +1018,26 @@ const light = new THREE.DirectionalLight(0xffffff, 0.9);
 light.position.set(2, 4, 3);
 scene.add(light);
 
-let bodyMesh = null;
+let bodyMeshes = [];
 
 new GLTFLoader().load('./avatar_shapekey.glb', (gltf) => {
   scene.add(gltf.scene);
   gltf.scene.traverse((child) => {
     if (child.isMesh && child.morphTargetDictionary) {
-      bodyMesh = child;
+      bodyMeshes.push(child);
       console.log('Shape keys found:', Object.keys(child.morphTargetDictionary));
     }
   });
 });
 
 function applySlider(sliderVal, minKey, maxKey) {
-  if (!bodyMesh) return;
-  const v = sliderVal / 100; // -1 to 1
-  const minIdx = bodyMesh.morphTargetDictionary[minKey];
-  const maxIdx = bodyMesh.morphTargetDictionary[maxKey];
-  if (minIdx !== undefined) bodyMesh.morphTargetInfluences[minIdx] = v < 0 ? -v : 0;
-  if (maxIdx !== undefined) bodyMesh.morphTargetInfluences[maxIdx] = v > 0 ? v : 0;
+  const v = sliderVal / 100;
+  bodyMeshes.forEach((mesh) => {
+    const minIdx = mesh.morphTargetDictionary[minKey];
+    const maxIdx = mesh.morphTargetDictionary[maxKey];
+    if (minIdx !== undefined) mesh.morphTargetInfluences[minIdx] = v < 0 ? -v : 0;
+    if (maxIdx !== undefined) mesh.morphTargetInfluences[maxIdx] = v > 0 ? v : 0;
+  });
 }
 
 document.getElementById('waistSlider').addEventListener('input', (e) => {
