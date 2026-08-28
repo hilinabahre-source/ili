@@ -970,6 +970,94 @@ function submitRequest(){
    INIT
    ============================================================ */
 navigate('home');
+</script><section id="avatar-builder" style="padding:40px; max-width:900px; margin:0 auto;">
+  <h2>Build Your Avatar</h2>
+  <div id="avatar-stage" style="width:100%; height:500px; background:#f1ecdf; border-radius:8px;"></div>
+
+  <div style="margin-top:20px;">
+    <label>Waist <span id="waistVal">0</span></label>
+    <input type="range" id="waistSlider" min="-100" max="100" value="0" style="width:100%;">
+
+    <label>Bust <span id="bustVal">0</span></label>
+    <input type="range" id="bustSlider" min="-100" max="100" value="0" style="width:100%;">
+
+    <label>Hip <span id="hipVal">0</span></label>
+    <input type="range" id="hipSlider" min="-100" max="100" value="0" style="width:100%;">
+  </div>
+</section>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+const stage = document.getElementById('avatar-stage');
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xf1ecdf);
+
+const camera = new THREE.PerspectiveCamera(35, stage.clientWidth / stage.clientHeight, 0.1, 100);
+camera.position.set(0, 1.4, 3);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(stage.clientWidth, stage.clientHeight);
+stage.appendChild(renderer.domElement);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.target.set(0, 0.9, 0);
+
+scene.add(new THREE.AmbientLight(0xffffff, 0.8));
+const light = new THREE.DirectionalLight(0xffffff, 0.9);
+light.position.set(2, 4, 3);
+scene.add(light);
+
+let bodyMesh = null;
+
+new GLTFLoader().load('./avatar_shapekey.glb', (gltf) => {
+  scene.add(gltf.scene);
+  gltf.scene.traverse((child) => {
+    if (child.isMesh && child.morphTargetDictionary) {
+      bodyMesh = child;
+      console.log('Shape keys found:', Object.keys(child.morphTargetDictionary));
+    }
+  });
+});
+
+function applySlider(sliderVal, minKey, maxKey) {
+  if (!bodyMesh) return;
+  const v = sliderVal / 100; // -1 to 1
+  const minIdx = bodyMesh.morphTargetDictionary[minKey];
+  const maxIdx = bodyMesh.morphTargetDictionary[maxKey];
+  if (minIdx !== undefined) bodyMesh.morphTargetInfluences[minIdx] = v < 0 ? -v : 0;
+  if (maxIdx !== undefined) bodyMesh.morphTargetInfluences[maxIdx] = v > 0 ? v : 0;
+}
+
+document.getElementById('waistSlider').addEventListener('input', (e) => {
+  document.getElementById('waistVal').textContent = e.target.value;
+  applySlider(parseFloat(e.target.value), 'waist_min', 'waist_max');
+});
+document.getElementById('bustSlider').addEventListener('input', (e) => {
+  document.getElementById('bustVal').textContent = e.target.value;
+  applySlider(parseFloat(e.target.value), 'bust_min', 'bust_max');
+});
+document.getElementById('hipSlider').addEventListener('input', (e) => {
+  document.getElementById('hipVal').textContent = e.target.value;
+  applySlider(parseFloat(e.target.value), 'hip_min', 'hip_max');
+});
+
+function animate() {
+  requestAnimationFrame(animate);
+  controls.update();
+  renderer.render(scene, camera);
+}
+animate();
 </script>
 </body>
 </html>
