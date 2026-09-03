@@ -1078,5 +1078,6 @@ function animate() {
 }
 animate();
 </script>
+<div id="body-view" style="height: 520px"></div> <script type="module"> import { mount } from "https://embed.bodydbl.com/1.0.1/viewer.js"; let viewer; try { viewer = mount({ target: '#body-view', siteKey: "bd_site_2g3wFctQ5NH03P1zEw05IME9dNlWYPIi" }); await viewer.ready; } catch (error) { viewer?.destroy(); document.querySelector('#body-view').textContent = '3D preview unavailable. You can continue entering measurements.'; } </script>
 </body>
 </html>
