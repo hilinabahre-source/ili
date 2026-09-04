@@ -1078,6 +1078,93 @@ function animate() {
 }
 animate();
 </script>
-<div id="body-view" style="height: 520px"></div> <script type="module"> import { mount } from "https://embed.bodydbl.com/1.0.1/viewer.js"; let viewer; try { viewer = mount({ target: '#body-view', siteKey: "bd_site_2g3wFctQ5NH03P1zEw05IME9dNlWYPIi" }); const capabilities = await viewer.ready; console.log('BODYDOUBLE CAPABILITIES:', JSON.stringify(capabilities, null, 2)); } catch (error) { viewer?.destroy(); document.querySelector('#body-view').textContent = '3D preview unavailable. You can continue entering measurements.'; } </script>
+<div id="body-view" style="height: 520px"></div>
+
+<div id="bd-form" style="max-width: 420px; margin-top: 24px; font-family: sans-serif; display: flex; flex-direction: column; gap: 10px;">
+  <h3>Build Your Avatar</h3>
+
+  <label>Gender
+    <select id="bd-gender">
+      <option value="female">Female</option>
+      <option value="male">Male</option>
+    </select>
+  </label>
+
+  <label>Height (cm) <input type="number" id="bd-height" placeholder="e.g. 168"></label>
+  <label>Weight (kg) <input type="number" id="bd-weight" placeholder="e.g. 65"></label>
+  <label>Bust / Chest Girth (cm) <input type="number" id="bd-chestGirth"></label>
+  <label>Underbust Girth (cm) <input type="number" id="bd-underbustGirth"></label>
+  <label>Waist Girth (cm) <input type="number" id="bd-waistGirth"></label>
+  <label>Hip Girth (cm) <input type="number" id="bd-hipGirth"></label>
+  <label>Shoulder Width (cm) <input type="number" id="bd-shoulderWidth"></label>
+  <label>Arm Length (cm) <input type="number" id="bd-armLength"></label>
+  <label>Arm Circumference / Bicep Girth (cm) <input type="number" id="bd-bicepGirth"></label>
+  <label>Thigh Circumference (cm) <input type="number" id="bd-thighGirth"></label>
+  <label>Torso Length – Back (Neck to Waist Back) (cm) <input type="number" id="bd-neckToWaistBack"></label>
+  <label>Torso Length – Front (Neck to Waist Front) (cm) <input type="number" id="bd-neckToWaistFront"></label>
+  <label>Leg Length (Crotch Height) (cm) <input type="number" id="bd-crotchHeight"></label>
+</div>
+
+<script type="module">
+  import { mount } from "https://embed.bodydbl.com/1.0.1/viewer.js";
+
+  let viewer;
+  let debounceTimer;
+
+  const fieldIds = [
+    'chestGirth', 'underbustGirth', 'waistGirth', 'hipGirth',
+    'shoulderWidth', 'armLength', 'bicepGirth', 'thighGirth',
+    'neckToWaistBack', 'neckToWaistFront', 'crotchHeight'
+  ];
+
+  function collectProfile() {
+    const gender = document.getElementById('bd-gender').value;
+    const fields = {};
+
+    const heightVal = document.getElementById('bd-height').value;
+    if (heightVal !== '') fields.height = parseFloat(heightVal);
+
+    const weightVal = document.getElementById('bd-weight').value;
+    if (weightVal !== '') fields.weight = parseFloat(weightVal);
+
+    fieldIds.forEach(id => {
+      const val = document.getElementById('bd-' + id).value;
+      if (val !== '') fields[id] = parseFloat(val);
+    });
+
+    return { schemaVersion: 1, gender, unitSystem: 'metric', fields };
+  }
+
+  function scheduleUpdate() {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(async () => {
+      if (!viewer) return;
+      try {
+        await viewer.setProfile(collectProfile());
+      } catch (err) {
+        console.error('BodyDouble update failed:', err);
+      }
+    }, 300);
+  }
+
+  try {
+    viewer = mount({
+      target: '#body-view',
+      siteKey: "bd_site_2g3wFctQ5NH03P1zEw05IME9dNlWYPIi"
+    });
+    await viewer.ready;
+
+    document.getElementById('bd-gender').addEventListener('change', scheduleUpdate);
+    document.getElementById('bd-height').addEventListener('input', scheduleUpdate);
+    document.getElementById('bd-weight').addEventListener('input', scheduleUpdate);
+    fieldIds.forEach(id => {
+      document.getElementById('bd-' + id).addEventListener('input', scheduleUpdate);
+    });
+  } catch (error) {
+    viewer?.destroy();
+    document.querySelector('#body-view').textContent =
+      '3D preview unavailable. You can continue entering measurements.';
+  }
+</script>
 </body>
 </html>
