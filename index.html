@@ -346,8 +346,77 @@ footer{text-align:center;padding:50px 20px 20px;color:var(--text-dimmer);font-si
     <button onclick="navigate('create')" data-view="create">Create</button>
     <button onclick="navigate('mypatterns')" data-view="mypatterns">My Patterns</button>
   </div>
+  <button id="profileIconBtn" title="Profile" style="background:none;border:none;cursor:pointer;padding:6px;display:flex;align-items:center;justify-content:center;border-radius:999px;">
+  <svg width="30" height="30" viewBox="0 0 64 64">
+    <circle cx="32" cy="34" r="26" fill="none" stroke="#d85a30" stroke-width="2" stroke-dasharray="4 3"/>
+    <rect x="12" y="12" width="40" height="40" fill="none" stroke="#f4d86b" stroke-width="2" stroke-dasharray="4 3"/>
+    <circle cx="32" cy="20" r="6" fill="none" stroke="#faf8f4" stroke-width="3" stroke-linecap="round"/>
+    <line x1="32" y1="27" x2="32" y2="42" stroke="#faf8f4" stroke-width="3" stroke-linecap="round"/>
+    <line x1="32" y1="30" x2="18" y2="18" stroke="#faf8f4" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="32" y1="30" x2="46" y2="18" stroke="#faf8f4" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="32" y1="42" x2="20" y2="54" stroke="#faf8f4" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="32" y1="42" x2="44" y2="54" stroke="#faf8f4" stroke-width="2.5" stroke-linecap="round"/>
+  </svg>
+</button>
   <button class="nav-cta" onclick="navigate('request')">💌 Request Design</button>
 </nav>
+  <div id="profileModal" style="display:none; position:fixed; inset:0; background:rgba(16,45,68,0.55); z-index:999; align-items:center; justify-content:center;">
+  <div style="background:#faf8f4; border-radius:16px; padding:28px; max-width:380px; width:90%; position:relative; font-family:sans-serif; color:#102d44;">
+    <button id="closeProfileModal" style="position:absolute; top:12px; right:14px; background:none; border:none; font-size:20px; cursor:pointer; color:#102d44;">&times;</button>
+    <h3 style="margin-top:0;">Your Profile</h3>
+    <p style="font-size:13px; color:#38506c; margin-bottom:16px;">Accounts, saved history, likes and comments are coming soon. For now, here's what you've entered this session:</p>
+    <div id="profileSummary" style="font-size:14px; line-height:1.6;"></div>
+  </div>
+</div>
+
+<script>
+  const profileBtn = document.getElementById('profileIconBtn');
+  const profileModal = document.getElementById('profileModal');
+  const closeProfileModal = document.getElementById('closeProfileModal');
+  const profileSummary = document.getElementById('profileSummary');
+
+  function fmt(id, label, unit) {
+    const el = document.getElementById(id);
+    if (!el || el.value === '') return '';
+    return '<div><strong>' + label + ':</strong> ' + el.value + ' ' + unit + '</div>';
+  }
+
+  profileBtn?.addEventListener('click', () => {
+    const genderEl = document.getElementById('bd-gender');
+    const unitEl = document.getElementById('bd-unit');
+    const lengthUnit = unitEl && unitEl.value === 'imperial' ? 'in' : 'cm';
+    const weightUnit = unitEl && unitEl.value === 'imperial' ? 'lb' : 'kg';
+
+    let html = '';
+    if (genderEl) html += '<div><strong>Gender:</strong> ' + genderEl.options[genderEl.selectedIndex].text + '</div>';
+    html += fmt('bd-height', 'Height', lengthUnit);
+    html += fmt('bd-weight', 'Weight', weightUnit);
+    html += fmt('bd-shoulderWidth', 'Shoulder Width', lengthUnit);
+    html += fmt('bd-neckToWaistBack', 'Torso (Back)', lengthUnit);
+    html += fmt('bd-neckToWaistFront', 'Torso (Front)', lengthUnit);
+    html += fmt('bd-chestGirth', 'Bust', lengthUnit);
+    html += fmt('bd-underbustGirth', 'Underbust', lengthUnit);
+    html += fmt('bd-armLength', 'Arm Length', lengthUnit);
+    html += fmt('bd-bicepGirth', 'Arm Circumference', lengthUnit);
+    html += fmt('bd-waistGirth', 'Waist', lengthUnit);
+    html += fmt('bd-hipGirth', 'Hip', lengthUnit);
+    html += fmt('bd-thighGirth', 'Thigh', lengthUnit);
+    html += fmt('bd-crotchHeight', 'Leg Length', lengthUnit);
+
+    if (html === '') html = '<p style="color:#58718a;">No measurements entered yet — head to your avatar builder to fill these in!</p>';
+
+    profileSummary.innerHTML = html;
+    profileModal.style.display = 'flex';
+  });
+
+  closeProfileModal?.addEventListener('click', () => {
+    profileModal.style.display = 'none';
+  });
+
+  profileModal?.addEventListener('click', (e) => {
+    if (e.target === profileModal) profileModal.style.display = 'none';
+  });
+</script>
 
 <main>
 
