@@ -1180,6 +1180,9 @@ navigate('home');
     scheduleUpdate();
   });
 
+  currentUnit = document.getElementById('bd-unit').value;
+updateUnitLabels();
+  
   window.initBodyDouble = async function () {
     if (bodyDoubleInitialized) {
       window.dispatchEvent(new Event('resize'));
