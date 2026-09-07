@@ -406,30 +406,92 @@ footer{text-align:center;padding:50px 20px 20px;color:var(--text-dimmer);font-si
     const subtitle = document.getElementById('constructionSubtitle');
     const diagramWrap = document.getElementById('constructionDiagram');
 
-    function pieceSvg(piece){
-      const H = 220;
-      const maxW = Math.max(piece.topWidth, piece.midWidth || 0, piece.bottomWidth);
-      const scale = 140 / maxW;
-      const topW = piece.topWidth * scale;
-      const botW = piece.bottomWidth * scale;
-      const midW = (piece.midWidth != null ? piece.midWidth : (piece.topWidth + piece.bottomWidth) / 2) * scale;
-      const midAt = piece.midAt != null ? piece.midAt : 0.5;
-      const cx = 80;
-      const topY = 20, botY = 20 + H, midY = 20 + H * midAt;
+    function bez(p0,c1,c2,p3,t){
+      const mt=1-t;
+      return {
+        x: mt*mt*mt*p0.x + 3*mt*mt*t*c1.x + 3*mt*t*t*c2.x + t*t*t*p3.x,
+        y: mt*mt*mt*p0.y + 3*mt*mt*t*c1.y + 3*mt*t*t*c2.y + t*t*t*p3.y
+      };
+    }
+    function bezTangent(p0,c1,c2,p3,t){
+      const mt=1-t;
+      return {
+        x: 3*mt*mt*(c1.x-p0.x) + 6*mt*t*(c2.x-c1.x) + 3*t*t*(p3.x-c2.x),
+        y: 3*mt*mt*(c1.y-p0.y) + 6*mt*t*(c2.y-c1.y) + 3*t*t*(p3.y-c2.y)
+      };
+    }
+    // Samples the side-seam curve (a chain of cubic beziers) into points,
+    // plus an offset copy (the seam allowance line) pushed outward (away
+    // from the fold, i.e. toward +x) by `sa` inches.
+    function sampleSideCurve(curves, sa, stepsPerCurve){
+      const seam = [], allowance = [];
+      curves.forEach(seg => {
+        for(let i=0;i<=stepsPerCurve;i++){
+          const t = i/stepsPerCurve;
+          const pt = bez(seg.p0,seg.c1,seg.c2,seg.p3,t);
+          const tan = bezTangent(seg.p0,seg.c1,seg.c2,seg.p3,t);
+          const len = Math.hypot(tan.x,tan.y) || 1;
+          // two perpendiculars; pick the one pointing away from the fold (+x)
+          let nx = -tan.y/len, ny = tan.x/len;
+          if(nx < 0){ nx=-nx; ny=-ny; }
+          seam.push(pt);
+          allowance.push({x:pt.x+nx*sa, y:pt.y+ny*sa});
+        }
+      });
+      return {seam, allowance};
+    }
+    function pointsToPath(points){
+      return points.map((p,i)=> (i===0?'M':'L') + p.x.toFixed(3) + ',' + p.y.toFixed(3)).join(' ');
+    }
+    function mirrorPoints(points){
+      return points.map(p => ({x:-p.x, y:p.y}));
+    }
 
-      const topL = cx - topW/2, topR = cx + topW/2;
-      const midL = cx - midW/2, midR = cx + midW/2;
-      const botL = cx - botW/2, botR = cx + botW/2;
+    function pieceSvg(piece){
+      const { seam: curveSeam, allowance: curveAllow } = sampleSideCurve(piece.curves, piece.sideSA, 12);
+
+      // Half-piece seamline: waist edge -> side curve -> hem edge -> fold edge (implicit close)
+      const halfSeam = [piece.topFold, piece.topSide, ...curveSeam, piece.hemFold];
+      // Half-piece seam allowance: waist shifted up, curve offset out, hem shifted down,
+      // fold edge stays at x=0 (no allowance on the fold).
+      const allowTopFold = {x:0, y:piece.topFold.y - piece.sideSA};
+      const allowTopSide = {x:piece.topSide.x, y:piece.topSide.y - piece.sideSA};
+      const allowHemFold = {x:0, y:piece.hemFold.y + piece.hemSA};
+      const halfAllow = [allowTopFold, allowTopSide, ...curveAllow, allowHemFold];
+
+      const fullSeam = [...mirrorPoints(halfSeam).reverse(), ...halfSeam];
+      const fullAllow = [...mirrorPoints(halfAllow).reverse(), ...halfAllow];
+
+      const allX = fullAllow.map(p=>p.x), allY = fullAllow.map(p=>p.y);
+      const minX=Math.min(...allX), maxX=Math.max(...allX), minY=Math.min(...allY), maxY=Math.max(...allY);
+      const w = maxX-minX, h = maxY-minY;
+      const pad = 16;
+      const targetH = 220;
+      const scale = targetH / h;
+      const svgW = w*scale + pad*2, svgH = h*scale + pad*2;
+
+      function toSvg(p){ return {x:(p.x-minX)*scale+pad, y:(p.y-minY)*scale+pad}; }
+      const seamPath = pointsToPath(fullSeam.map(toSvg)) + ' Z';
+      const allowPath = pointsToPath(fullAllow.map(toSvg)) + ' Z';
+
+      const foldTop = toSvg({x:0, y:piece.topFold.y});
+      const foldBot = toSvg({x:0, y:piece.hemFold.y});
+      const grainTop = toSvg({x:0, y:piece.topFold.y + (piece.hemFold.y-piece.topFold.y)*0.08});
+      const grainBot = toSvg({x:0, y:piece.topFold.y + (piece.hemFold.y-piece.topFold.y)*0.92});
 
       return `
         <div style="text-align:center;">
-          <svg width="160" height="${H+60}" viewBox="0 0 160 ${H+60}">
-            <polygon points="${topL},${topY} ${topR},${topY} ${midR},${midY} ${botR},${botY} ${botL},${botY} ${midL},${midY}"
-              fill="rgba(244,216,107,0.12)" stroke="#f4d86b" stroke-width="2"/>
-            <line x1="${cx}" y1="${topY}" x2="${cx}" y2="${botY}" stroke="#f4d86b" stroke-width="1.5" stroke-dasharray="5 4" opacity="0.7"/>
+          <svg width="${Math.min(svgW,260)}" height="${svgH}" viewBox="0 0 ${svgW} ${svgH}">
+            <path d="${allowPath}" fill="none" stroke="#f4d86b" stroke-width="1.5" stroke-dasharray="5 4" opacity="0.85"/>
+            <path d="${seamPath}" fill="rgba(244,216,107,0.12)" stroke="#f4d86b" stroke-width="2.2"/>
+            <line x1="${foldTop.x}" y1="${foldTop.y}" x2="${foldBot.x}" y2="${foldBot.y}" stroke="#b9d7f0" stroke-width="1" stroke-dasharray="1 6" opacity="0.6"/>
+            <line x1="${grainTop.x+10}" y1="${grainTop.y}" x2="${grainBot.x+10}" y2="${grainBot.y}" stroke="#f9f5ef" stroke-width="1.4"/>
+            <path d="M${grainTop.x+6},${grainTop.y+8} L${grainTop.x+10},${grainTop.y} L${grainTop.x+14},${grainTop.y+8}" fill="none" stroke="#f9f5ef" stroke-width="1.4"/>
+            <path d="M${grainBot.x+6},${grainBot.y-8} L${grainBot.x+10},${grainBot.y} L${grainBot.x+14},${grainBot.y-8}" fill="none" stroke="#f9f5ef" stroke-width="1.4"/>
           </svg>
           <div style="font-family:'Unbounded',sans-serif; font-size:0.95rem; color:#f9f5ef; margin-top:4px;">${piece.label}</div>
           <div style="font-size:0.78rem; color:#b9d7f0; margin-top:2px;">${piece.cut}</div>
+          <div style="font-size:0.72rem; color:#8fa9c2; margin-top:2px;">Dashed gold = seam allowance</div>
         </div>`;
     }
 
@@ -652,8 +714,23 @@ let PATTERNS = [
     time:'2-3 hrs', fabric:'Lightweight cotton, twill, or denim', image:'9efbbe16addf710e619484c72c59090f.jpg', emoji:'', yardageBase:1,
     base:{waist:76,hip:99,length:28},
     pieces:[
-      {label:'Front', cut:'Cut 1 on fold', topWidth:35.6, midWidth:45.7, bottomWidth:49.5, midAt:0.59},
-      {label:'Back', cut:'Cut 1 on fold', topWidth:40.6, midWidth:53.3, bottomWidth:50.8, midAt:0.5}
+      {
+        label:'Front', cut:'Cut 1 on fold', sideSA:0.375, hemSA:0.5,
+        topFold:{x:0,y:0}, topSide:{x:7,y:0},
+        hemFold:{x:0,y:11}, hemSide:{x:9.75,y:11},
+        curves:[
+          {p0:{x:7,y:0}, c1:{x:8.5156,y:2.5117}, c2:{x:8.7284,y:3.8949}, p3:{x:9,y:6.5}},
+          {p0:{x:9,y:6.5}, c1:{x:9.2719,y:7.4721}, c2:{x:9.8226,y:10.2910}, p3:{x:9.75,y:11}}
+        ]
+      },
+      {
+        label:'Back', cut:'Cut 1 on fold', sideSA:0.5, hemSA:1,
+        topFold:{x:0,y:0}, topSide:{x:8,y:0},
+        hemFold:{x:0,y:13}, hemSide:{x:10,y:13},
+        curves:[
+          {p0:{x:8,y:0}, c1:{x:10.9671,y:3.5427}, c2:{x:11.2890,y:9.2114}, p3:{x:10,y:13}}
+        ]
+      }
     ],
     files:[
       {label:'Front piece (US Letter, printable)', url:'front_skirt_pattern_US_Letter.pdf'},
