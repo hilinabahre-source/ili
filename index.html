@@ -1217,5 +1217,208 @@ navigate('home');
   }
 </script>
 
+<!-- ===================== JELLYFISH HELPER ===================== -->
+<style>
+  #jellyHelper{
+    position:fixed;
+    right:3%;
+    top:50%;
+    transform:translateY(-50%);
+    z-index:90;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    animation:jellyBob 3.4s ease-in-out infinite;
+    transition:right .35s ease, top .35s ease, bottom .35s ease, transform .35s ease;
+  }
+  #jellyHelper.docked{
+    right:16px;
+    top:auto;
+    bottom:16px;
+    transform:none;
+    animation:jellyBobSmall 3.4s ease-in-out infinite;
+  }
+  @keyframes jellyBob{
+    0%,100%{transform:translateY(-50%);}
+    50%{transform:translateY(calc(-50% - 16px));}
+  }
+  @keyframes jellyBobSmall{
+    0%,100%{transform:translateY(0);}
+    50%{transform:translateY(-10px);}
+  }
+  #jellyBody{
+    position:relative;
+    cursor:pointer;
+    filter:drop-shadow(0 10px 20px rgba(18,49,77,0.25));
+  }
+  #jellyDock{
+    position:absolute;
+    top:-6px;
+    left:-6px;
+    width:22px;
+    height:22px;
+    border-radius:50%;
+    background:#f9f5ef;
+    border:1px solid rgba(18,49,77,0.12);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:11px;
+    cursor:pointer;
+    z-index:2;
+  }
+  #jellyBubble{
+    position:absolute;
+    right:calc(100% + 14px);
+    top:50%;
+    transform:translateY(-50%) scale(.92);
+    background:#faf8f4;
+    border:1px solid rgba(18,49,77,0.12);
+    border-radius:16px;
+    padding:14px 30px 14px 16px;
+    max-width:230px;
+    font-family:'Space Grotesk',sans-serif;
+    font-size:0.85rem;
+    line-height:1.45;
+    color:#12314d;
+    box-shadow:0 12px 30px rgba(18,49,77,0.18);
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .25s ease, transform .25s ease;
+  }
+  #jellyBubble.show{
+    opacity:1;
+    transform:translateY(-50%) scale(1);
+    pointer-events:auto;
+  }
+  #jellyHelper.docked #jellyBubble{
+    right:auto;
+    left:calc(100% + 14px);
+    bottom:0;
+    top:auto;
+    transform:translateY(0) scale(.92);
+  }
+  #jellyHelper.docked #jellyBubble.show{
+    transform:translateY(0) scale(1);
+  }
+  #jellyBubble b{display:block;margin-bottom:4px;font-family:'Unbounded',sans-serif;font-size:0.78rem;}
+  #jellyClose{
+    position:absolute;
+    top:6px;
+    right:8px;
+    font-size:14px;
+    line-height:1;
+    cursor:pointer;
+    color:#58718a;
+    background:none;
+    border:none;
+  }
+  @media (max-width:900px){
+    #jellyHelper{right:10px;}
+    #jellyBubble{max-width:180px;font-size:0.8rem;}
+  }
+</style>
+
+<div id="jellyHelper">
+  <div id="jellyBubble">
+    <button id="jellyClose" aria-label="Close">&times;</button>
+    <b>Jelly says:</b>
+    <span id="jellyText"></span>
+  </div>
+  <div id="jellyBody" title="Click me for a tip!">
+    <div id="jellyDock" title="Dock / undock">📌</div>
+    <svg viewBox="0 0 100 120" width="68" height="82">
+      <defs>
+        <linearGradient id="jellyGrad" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#ff9fd6"/>
+          <stop offset="100%" stop-color="#8b5cf6"/>
+        </linearGradient>
+      </defs>
+      <path d="M20,55 C20,18 80,18 80,55 C80,66 70,60 65,54 C65,66 55,60 50,54 C50,66 40,60 35,54 C35,66 25,60 20,55 Z" fill="url(#jellyGrad)"/>
+      <circle cx="38" cy="40" r="4" fill="#102d44"/>
+      <circle cx="62" cy="40" r="4" fill="#102d44"/>
+      <path d="M42,49 Q50,55 58,49" stroke="#102d44" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <path d="M30,58 Q25,76 30,94 Q35,76 30,58" fill="#ff9fd6" opacity="0.85"/>
+      <path d="M44,58 Q39,80 44,102 Q49,80 44,58" fill="#c4b0fb" opacity="0.85"/>
+      <path d="M56,58 Q51,80 56,102 Q61,80 56,58" fill="#ff9fd6" opacity="0.85"/>
+      <path d="M70,58 Q65,76 70,94 Q75,76 70,58" fill="#c4b0fb" opacity="0.85"/>
+    </svg>
+  </div>
+</div>
+
+<script>
+(function(){
+  const TIPS = {
+    'view-home': "Let's make your avatar! ✨ Scroll down to Build Your Avatar and enter your measurements. Measure height barefoot, chest around the fullest part, waist at your natural waistline, and hip at the widest point for the best fit.",
+    'view-browse': "Looking for a pattern? Filter by trend or difficulty up top to find your vibe faster!",
+    'view-detail': "Drag the sliders on the right to customize this pattern to your measurements \u2014 the fabric estimate updates live!",
+    'view-create': "Building your own pattern? Clear, simple steps help other sewers follow along easily.",
+    'view-request': "The more detail you give (inspo pics, silhouette, fit notes), the better chance we bring it to life!",
+    'view-mypatterns': "This is your stash! Come back anytime to pick up right where you left off."
+  };
+
+  const wrap = document.getElementById('jellyHelper');
+  const bubble = document.getElementById('jellyBubble');
+  const text = document.getElementById('jellyText');
+  const body = document.getElementById('jellyBody');
+  const dockBtn = document.getElementById('jellyDock');
+  const closeBtn = document.getElementById('jellyClose');
+
+  let hideTimer;
+  let lastViewId = null;
+
+  function currentViewId(){
+    const el = document.querySelector('.view.active');
+    return el ? el.id : 'view-home';
+  }
+
+  function showTip(){
+    const id = currentViewId();
+    text.textContent = TIPS[id] || "Hi! I'm here if you need a hand.";
+    bubble.classList.add('show');
+    clearTimeout(hideTimer);
+    hideTimer = setTimeout(() => bubble.classList.remove('show'), 9000);
+  }
+
+  function hideTip(){
+    bubble.classList.remove('show');
+    clearTimeout(hideTimer);
+  }
+
+  body.addEventListener('click', (e) => {
+    if (e.target === dockBtn) return;
+    showTip();
+  });
+
+  closeBtn.addEventListener('click', hideTip);
+
+  dockBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    wrap.classList.toggle('docked');
+    hideTip();
+  });
+
+  // Watch for view changes and greet with a fresh tip for that page.
+  const observer = new MutationObserver(() => {
+    const id = currentViewId();
+    if (id !== lastViewId) {
+      lastViewId = id;
+      showTip();
+    }
+  });
+  document.querySelectorAll('.view').forEach(el => {
+    observer.observe(el, { attributes: true, attributeFilter: ['class'] });
+  });
+
+  // First greeting shortly after load.
+  setTimeout(showTip, 1400);
+
+  // Gentle periodic reminder if she's been quiet a while and isn't docked-and-dismissed.
+  setInterval(() => {
+    if (!bubble.classList.contains('show')) showTip();
+  }, 50000);
+})();
+</script>
+
 </body>
 </html>
