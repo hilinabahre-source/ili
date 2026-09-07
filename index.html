@@ -376,8 +376,48 @@ footer{text-align:center;padding:50px 20px 20px;color:var(--text-dimmer);font-si
 </button>
 
 </div>
+</nav>
+  <div id="profileModal" style="display:none; position:fixed; inset:0; background:rgba(16,45,68,0.55); z-index:999; align-items:center; justify-content:center; padding:20px;">
+  <div style="background:#faf8f4; border-radius:16px; padding:28px; max-width:640px; width:95%; max-height:90vh; overflow-y:auto; position:relative; font-family:sans-serif; color:#102d44;">
+    <button id="closeProfileModal" style="position:absolute; top:12px; right:14px; background:none; border:none; font-size:20px; cursor:pointer; color:#102d44;">&times;</button>
+    <h3 style="margin-top:0;">Your Profile</h3>
+    <p style="font-size:13px; color:#38506c; margin-bottom:16px;">Accounts, saved history, likes and comments are coming soon. Build your avatar below — your measurements save for this session.</p>
 
-<script>
+    <div id="body-view" style="height: 420px; background:#f4efe8; border-radius:12px; overflow:hidden;"></div>
+
+    <div id="bd-form" style="margin-top: 20px; font-family: sans-serif; display: flex; flex-direction: column; gap: 10px;">
+      <label>Gender
+        <select id="bd-gender">
+          <option value="female">Female</option>
+          <option value="male">Male</option>
+        </select>
+      </label>
+      <label>Units
+        <select id="bd-unit">
+          <option value="metric">Metric (cm / kg)</option>
+          <option value="imperial">Imperial (in / lb)</option>
+        </select>
+      </label>
+      <label>Height (<span class="bd-unit-length">cm</span>) <input type="number" id="bd-height" placeholder="e.g. 168"></label>
+      <label>Weight (<span class="bd-unit-weight">kg</span>) <input type="number" id="bd-weight" placeholder="e.g. 65"></label>
+      <label>Shoulder Width (<span class="bd-unit-length">cm</span>) <input type="number" id="bd-shoulderWidth"></label>
+      <label>Torso Length – Back (Neck to Waist Back) (<span class="bd-unit-length">cm</span>) <input type="number" id="bd-neckToWaistBack"></label>
+      <label>Torso Length – Front (Neck to Waist Front) (<span class="bd-unit-length">cm</span>) <input type="number" id="bd-neckToWaistFront"></label>
+      <label>Bust / Chest Girth (<span class="bd-unit-length">cm</span>) <input type="number" id="bd-chestGirth"></label>
+      <label>Underbust Girth (<span class="bd-unit-length">cm</span>) <input type="number" id="bd-underbustGirth"></label>
+      <label>Arm Length (<span class="bd-unit-length">cm</span>) <input type="number" id="bd-armLength"></label>
+      <label>Arm Circumference / Bicep Girth (<span class="bd-unit-length">cm</span>) <input type="number" id="bd-bicepGirth"></label>
+      <label>Waist Girth (<span class="bd-unit-length">cm</span>) <input type="number" id="bd-waistGirth"></label>
+      <label>Hip Girth (<span class="bd-unit-length">cm</span>) <input type="number" id="bd-hipGirth"></label>
+      <label>Thigh Circumference (<span class="bd-unit-length">cm</span>) <input type="number" id="bd-thighGirth"></label>
+      <label>Leg Length (Crotch Height) (<span class="bd-unit-length">cm</span>) <input type="number" id="bd-crotchHeight"></label>
+    </div>
+
+    <h4 style="margin-top:20px; margin-bottom:8px;">Quick recap</h4>
+    <div id="profileSummary" style="font-size:14px; line-height:1.6;"></div>
+  </div>
+</div>
+  <script>
   const profileBtn = document.getElementById('profileIconBtn');
   const profileModal = document.getElementById('profileModal');
   const closeProfileModal = document.getElementById('closeProfileModal');
@@ -426,47 +466,6 @@ footer{text-align:center;padding:50px 20px 20px;color:var(--text-dimmer);font-si
     if (e.target === profileModal) profileModal.style.display = 'none';
   });
 </script>
-</nav>
-  <div id="profileModal" style="display:none; position:fixed; inset:0; background:rgba(16,45,68,0.55); z-index:999; align-items:center; justify-content:center; padding:20px;">
-  <div style="background:#faf8f4; border-radius:16px; padding:28px; max-width:640px; width:95%; max-height:90vh; overflow-y:auto; position:relative; font-family:sans-serif; color:#102d44;">
-    <button id="closeProfileModal" style="position:absolute; top:12px; right:14px; background:none; border:none; font-size:20px; cursor:pointer; color:#102d44;">&times;</button>
-    <h3 style="margin-top:0;">Your Profile</h3>
-    <p style="font-size:13px; color:#38506c; margin-bottom:16px;">Accounts, saved history, likes and comments are coming soon. Build your avatar below — your measurements save for this session.</p>
-
-    <div id="body-view" style="height: 420px; background:#f4efe8; border-radius:12px; overflow:hidden;"></div>
-
-    <div id="bd-form" style="margin-top: 20px; font-family: sans-serif; display: flex; flex-direction: column; gap: 10px;">
-      <label>Gender
-        <select id="bd-gender">
-          <option value="female">Female</option>
-          <option value="male">Male</option>
-        </select>
-      </label>
-      <label>Units
-        <select id="bd-unit">
-          <option value="metric">Metric (cm / kg)</option>
-          <option value="imperial">Imperial (in / lb)</option>
-        </select>
-      </label>
-      <label>Height (<span class="bd-unit-length">cm</span>) <input type="number" id="bd-height" placeholder="e.g. 168"></label>
-      <label>Weight (<span class="bd-unit-weight">kg</span>) <input type="number" id="bd-weight" placeholder="e.g. 65"></label>
-      <label>Shoulder Width (<span class="bd-unit-length">cm</span>) <input type="number" id="bd-shoulderWidth"></label>
-      <label>Torso Length – Back (Neck to Waist Back) (<span class="bd-unit-length">cm</span>) <input type="number" id="bd-neckToWaistBack"></label>
-      <label>Torso Length – Front (Neck to Waist Front) (<span class="bd-unit-length">cm</span>) <input type="number" id="bd-neckToWaistFront"></label>
-      <label>Bust / Chest Girth (<span class="bd-unit-length">cm</span>) <input type="number" id="bd-chestGirth"></label>
-      <label>Underbust Girth (<span class="bd-unit-length">cm</span>) <input type="number" id="bd-underbustGirth"></label>
-      <label>Arm Length (<span class="bd-unit-length">cm</span>) <input type="number" id="bd-armLength"></label>
-      <label>Arm Circumference / Bicep Girth (<span class="bd-unit-length">cm</span>) <input type="number" id="bd-bicepGirth"></label>
-      <label>Waist Girth (<span class="bd-unit-length">cm</span>) <input type="number" id="bd-waistGirth"></label>
-      <label>Hip Girth (<span class="bd-unit-length">cm</span>) <input type="number" id="bd-hipGirth"></label>
-      <label>Thigh Circumference (<span class="bd-unit-length">cm</span>) <input type="number" id="bd-thighGirth"></label>
-      <label>Leg Length (Crotch Height) (<span class="bd-unit-length">cm</span>) <input type="number" id="bd-crotchHeight"></label>
-    </div>
-
-    <h4 style="margin-top:20px; margin-bottom:8px;">Quick recap</h4>
-    <div id="profileSummary" style="font-size:14px; line-height:1.6;"></div>
-  </div>
-</div>
 <main>
 
   <!-- ===================== HOME ===================== -->
