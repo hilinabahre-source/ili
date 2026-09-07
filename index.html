@@ -1183,10 +1183,25 @@ navigate('home');
     viewer.on('profile', profile => {
       console.log('BodyDouble profile update:', profile.fields);
     });
+    // Only these mean the viewer itself is broken. Everything else (like a
+    // single field being out of range while someone's still typing) is a
+    // normal, recoverable per-update error and shouldn't kill the viewer.
+    const FATAL_ERROR_CODES = new Set([
+      'INIT_TIMEOUT',
+      'VERSION_MISMATCH',
+      'WEBGL_UNAVAILABLE',
+      'WEBGL_CONTEXT_LOST',
+      'MODEL_LOAD_FAILED',
+      'VIEWER_ERROR',
+      'DESTROYED'
+    ]);
+
     viewer.on('error', err => {
       console.error('BodyDouble runtime error:', err);
-      document.querySelector('#body-view').textContent =
-        '3D preview ran into a problem. You can continue entering measurements.';
+      if (FATAL_ERROR_CODES.has(err?.code)) {
+        document.querySelector('#body-view').textContent =
+          '3D preview ran into a problem. You can continue entering measurements.';
+      }
     });
 
     document.getElementById('bd-gender').addEventListener('change', scheduleUpdate);
