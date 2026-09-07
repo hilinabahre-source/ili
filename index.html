@@ -232,6 +232,9 @@ main{max-width:1180px;margin:0 auto;padding:0 24px;}
 .detail-facts{display:flex;gap:26px;flex-wrap:wrap;margin:16px 0 22px;}
 .detail-fact span{display:block;color:var(--text-dimmer);font-size:0.75rem;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px;}
 .detail-fact b{font-size:0.98rem;}
+.detail-fact-clickable{cursor:pointer;padding:6px 12px;margin:-6px -12px;border-radius:10px;transition:background .15s ease;}
+.detail-fact-clickable:hover{background:var(--surface-2);}
+.detail-fact-clickable b{color:var(--indigo);text-decoration:underline;text-decoration-color:var(--border);}
 .detail-actions{display:flex;gap:12px;}
 
 .layout-split{display:grid;grid-template-columns:1fr 340px;gap:36px;align-items:start;}
@@ -386,6 +389,62 @@ footer{text-align:center;padding:50px 20px 20px;color:var(--text-dimmer);font-si
     <div id="profileSummary" style="font-size:14px; line-height:1.6;"></div>
   </div>
 </div>
+
+<div id="constructionModal" style="display:none; position:fixed; inset:0; background:rgba(16,45,68,0.68); z-index:999; align-items:center; justify-content:center; padding:20px;">
+  <div style="background:#102d44; border-radius:20px; padding:32px; max-width:640px; width:95%; max-height:88vh; overflow-y:auto; position:relative; font-family:'Space Grotesk',sans-serif; color:#f9f5ef; border:1px solid rgba(244,216,107,0.25);">
+    <button id="closeConstructionModal" style="position:absolute; top:16px; right:18px; background:none; border:none; font-size:24px; cursor:pointer; color:#f4d86b;">&times;</button>
+    <h3 style="margin-top:0; font-family:'Unbounded',sans-serif; color:#f4d86b;">Pattern Construction</h3>
+    <p id="constructionSubtitle" style="font-size:13px; color:#b9d7f0; margin-bottom:20px;"></p>
+    <div id="constructionDiagram" style="display:flex; gap:24px; flex-wrap:wrap; justify-content:center;"></div>
+  </div>
+</div>
+
+<script>
+  (function(){
+    const modal = document.getElementById('constructionModal');
+    const closeBtn = document.getElementById('closeConstructionModal');
+    const subtitle = document.getElementById('constructionSubtitle');
+    const diagramWrap = document.getElementById('constructionDiagram');
+
+    function pieceSvg(piece){
+      const H = 220;
+      const maxW = Math.max(piece.topWidth, piece.midWidth || 0, piece.bottomWidth);
+      const scale = 140 / maxW;
+      const topW = piece.topWidth * scale;
+      const botW = piece.bottomWidth * scale;
+      const midW = (piece.midWidth != null ? piece.midWidth : (piece.topWidth + piece.bottomWidth) / 2) * scale;
+      const midAt = piece.midAt != null ? piece.midAt : 0.5;
+      const cx = 80;
+      const topY = 20, botY = 20 + H, midY = 20 + H * midAt;
+
+      const topL = cx - topW/2, topR = cx + topW/2;
+      const midL = cx - midW/2, midR = cx + midW/2;
+      const botL = cx - botW/2, botR = cx + botW/2;
+
+      return `
+        <div style="text-align:center;">
+          <svg width="160" height="${H+60}" viewBox="0 0 160 ${H+60}">
+            <polygon points="${topL},${topY} ${topR},${topY} ${midR},${midY} ${botR},${botY} ${botL},${botY} ${midL},${midY}"
+              fill="rgba(244,216,107,0.12)" stroke="#f4d86b" stroke-width="2"/>
+            <line x1="${cx}" y1="${topY}" x2="${cx}" y2="${botY}" stroke="#f4d86b" stroke-width="1.5" stroke-dasharray="5 4" opacity="0.7"/>
+          </svg>
+          <div style="font-family:'Unbounded',sans-serif; font-size:0.95rem; color:#f9f5ef; margin-top:4px;">${piece.label}</div>
+          <div style="font-size:0.78rem; color:#b9d7f0; margin-top:2px;">${piece.cut}</div>
+        </div>`;
+    }
+
+    window.openConstructionModal = function(patternId){
+      const p = PATTERNS.find(x => x.id === patternId);
+      if (!p || !p.pieces) return;
+      subtitle.textContent = `${p.pieces.length} pattern piece${p.pieces.length === 1 ? '' : 's'} \u2014 fold line shown as center dashed line`;
+      diagramWrap.innerHTML = p.pieces.map(pieceSvg).join('');
+      modal.style.display = 'flex';
+    };
+
+    closeBtn.addEventListener('click', () => { modal.style.display = 'none'; });
+    modal.addEventListener('click', (e) => { if (e.target === modal) modal.style.display = 'none'; });
+  })();
+</script>
 
 <script>
   const profileBtn = document.getElementById('profileIconBtn');
@@ -592,6 +651,10 @@ let PATTERNS = [
     id:'pattern-2', name:'White Mini Skirt', trend:'Y2K Streetwear', difficulty:'Beginner',
     time:'2-3 hrs', fabric:'Lightweight cotton, twill, or denim', image:'9efbbe16addf710e619484c72c59090f.jpg', emoji:'', yardageBase:1,
     base:{waist:76,hip:99,length:28},
+    pieces:[
+      {label:'Front', cut:'Cut 1 on fold', topWidth:35.6, midWidth:45.7, bottomWidth:49.5, midAt:0.59},
+      {label:'Back', cut:'Cut 1 on fold', topWidth:40.6, midWidth:53.3, bottomWidth:50.8, midAt:0.5}
+    ],
     files:[
       {label:'Front piece (US Letter, printable)', url:'front_skirt_pattern_US_Letter.pdf'},
       {label:'Back piece (US Letter, printable)', url:'back_skirt_us_letter_printable.pdf'}
@@ -787,7 +850,9 @@ function renderDetail(){
         </div>
         <h1>${p.name}</h1>
         <div class="detail-facts">
-          <div class="detail-fact"><span>Time</span><b>${p.time}</b></div>
+          <div class="detail-fact ${p.pieces && p.pieces.length ? 'detail-fact-clickable' : ''}" ${p.pieces && p.pieces.length ? `onclick="openConstructionModal('${p.id}')"` : ''}>
+            <span>Construction</span><b>${p.pieces && p.pieces.length ? `${p.pieces.length} pieces 📐` : '—'}</b>
+          </div>
           <div class="detail-fact"><span>Fabric</span><b>${p.fabric}</b></div>
           <div class="detail-fact"><span>Steps</span><b>${p.steps.length}</b></div>
         </div>
