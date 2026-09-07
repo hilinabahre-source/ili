@@ -589,11 +589,19 @@ let PATTERNS = [
     ]
   },
   {
-    id:'pattern-2', name:'White Mini Skirt', trend:'', difficulty:'',
-    time:'', fabric:'', image:'9efbbe16addf710e619484c72c59090f.jpg', emoji:'', yardageBase:0,
-    base:{waist:0,hip:0,length:0},
+    id:'pattern-2', name:'White Mini Skirt', trend:'Y2K Streetwear', difficulty:'Beginner',
+    time:'2-3 hrs', fabric:'Lightweight cotton, twill, or denim', image:'9efbbe16addf710e619484c72c59090f.jpg', emoji:'', yardageBase:1,
+    base:{waist:76,hip:99,length:28},
+    files:[
+      {label:'Front piece (US Letter, printable)', url:'front_skirt_pattern_US_Letter.pdf'},
+      {label:'Back piece (US Letter, printable)', url:'back_skirt_us_letter_printable.pdf'}
+    ],
     steps:[
-      {title:'Coming soon', text:'Details will be added soon.', diagram:'pin'}
+      {title:'Cut your front piece', text:'Print the front pattern piece and check the 2"x2" test square before assembling the tiled pages. Fold your fabric and place Center Front on the fold. A 3/8" seam allowance is included at the waist and sides, with a 1/2" hem allowance. Cut 1 on the fold.', diagram:'pin'},
+      {title:'Cut your back piece', text:'Print the back pattern piece and check the test square the same way. Fold your fabric and place Center Back on the fold. A 1/2" seam allowance is included at the waist and sides, with a 1" hem allowance. The back is drafted 2" longer than the front for a subtle dipped hem \u2014 cut 1 on the fold.', diagram:'pin'},
+      {title:'Sew the side seams', text:'With right sides together, pin the front and back pieces along both side seams and stitch. Finish the raw edges (serge, zigzag, or pinking shears) to prevent fraying.', diagram:'seam'},
+      {title:'Finish the waist', text:'Fold and press the waist seam allowance to the inside, then topstitch it down \u2014 or attach a separate waistband here if you\'d like one.', diagram:'attach'},
+      {title:'Hem the skirt', text:'Fold and press the hem allowance on both front (1/2") and back (1") \u2014 the back\'s deeper hem is what gives the dipped-back silhouette. Stitch in place all the way around.', diagram:'hem'}
     ]
   }
 ]
@@ -780,6 +788,10 @@ function renderDetail(){
           <button class="btn btn-primary btn-sm" onclick="toggleSave('${p.id}');renderDetail();">${state.saved.has(p.id)?'♥ Saved':'♡ Save pattern'}</button>
           <button class="btn btn-ghost btn-sm" onclick="resetProgress('${p.id}')">↺ Reset progress</button>
         </div>
+        ${p.files && p.files.length ? `
+        <div class="detail-actions" style="margin-top:12px;flex-wrap:wrap;">
+          ${p.files.map(f => `<a class="btn btn-ghost btn-sm" href="${f.url}" download>⬇ ${f.label}</a>`).join('')}
+        </div>` : ''}
       </div>
     </div>
 
