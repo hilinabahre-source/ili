@@ -1178,12 +1178,20 @@ navigate('home');
     scheduleUpdate();
   });
 
-  window.initBodyDouble = async function () {
+ window.initBodyDouble = async function () {
     if (bodyDoubleInitialized) {
       window.dispatchEvent(new Event('resize'));
       return;
     }
     bodyDoubleInitialized = true;
+
+    document.getElementById('bd-gender').addEventListener('change', scheduleUpdate);
+    document.getElementById('bd-height').addEventListener('input', scheduleUpdate);
+    document.getElementById('bd-weight').addEventListener('input', scheduleUpdate);
+    lengthFieldIds.forEach(id => {
+      document.getElementById('bd-' + id).addEventListener('input', scheduleUpdate);
+    });
+
     try {
       viewer = mount({
         target: '#body-view',
@@ -1195,18 +1203,7 @@ navigate('home');
       } catch (appearanceErr) {
         console.warn('Could not set appearance:', appearanceErr);
       }
-      document.getElementById('bd-gender').addEventListener('change', scheduleUpdate);
-      document.getElementById('bd-height').addEventListener('input', scheduleUpdate);
-      document.getElementById('bd-weight').addEventListener('input', scheduleUpdate);
-      lengthFieldIds.forEach(id => {
-        document.getElementById('bd-' + id).addEventListener('input', scheduleUpdate);
-      });
-    } catch (error) {
-      viewer?.destroy();
-      document.querySelector('#body-view').textContent =
-        '3D preview unavailable. You can continue entering measurements.';
-    }
-  };
+      scheduleUpdate();
 </script>
 </body>
 </html>
