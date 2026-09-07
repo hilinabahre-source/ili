@@ -1203,7 +1203,13 @@ navigate('home');
       } catch (appearanceErr) {
         console.warn('Could not set appearance:', appearanceErr);
       }
-      scheduleUpdate();
+            scheduleUpdate();
+    } catch (error) {
+      viewer?.destroy();
+      document.querySelector('#body-view').textContent =
+        '3D preview unavailable. You can continue entering measurements.';
+    }
+  };
 </script>
 </body>
 </html>
