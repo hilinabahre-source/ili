@@ -762,13 +762,20 @@ function renderDetail(){
   const el = document.getElementById('detailContent');
   if(!p){ el.innerHTML = '<p>Pattern not found.</p>'; return; }
   if(!state.progress[p.id]) state.progress[p.id] = new Set();
-  if(!state.fitOverrides) state.fitOverrides = {};
-  if(!state.fitOverrides[p.id]) state.fitOverrides[p.id] = {...p.base};
 
   const done = state.progress[p.id].size;
   const pct = Math.round((done/p.steps.length)*100);
-  const fit = state.fitOverrides[p.id];
+
+  const customer = (window.getCustomerBodyMeasurements ? window.getCustomerBodyMeasurements().fields : {}) || {};
+  const hasCustomerFit = customer.waistGirth != null || customer.hipGirth != null;
+  const fit = {
+    waist: customer.waistGirth ?? p.base.waist,
+    hip: customer.hipGirth ?? p.base.hip,
+    length: customer.crotchHeight ?? p.base.length
+  };
   const yardage = calcYardage(p, fit);
+  const waistDiff = fit.waist - p.base.waist;
+  const hipDiff = fit.hip - p.base.hip;
 
   el.innerHTML = `
     <div class="detail-head">
@@ -814,51 +821,25 @@ function renderDetail(){
 
       <div>
         <div class="sidebar-card">
-          <h3>📐 Customize your fit</h3>
-          ${sliderRow('waist','Waist',fit.waist,p.id)}
-          ${sliderRow('hip','Hip',fit.hip,p.id)}
-          ${sliderRow('length','Length',fit.length,p.id)}
-          <div class="fit-preview">${fitSilhouette(fit,p.base)}</div>
-        </div>
-        <div class="sidebar-card">
           <h3>🧵 Fabric estimate</h3>
           <div class="yardage-box"><span>You'll need about</span><b>${yardage} m</b></div>
+          ${hasCustomerFit ? `
+          <p style="font-size:0.82rem;color:var(--text-dim);margin-top:10px;line-height:1.55;">
+            Based on your saved measurements: your waist is ${Math.abs(waistDiff).toFixed(1)}cm ${waistDiff>=0?'bigger':'smaller'} and your hip is ${Math.abs(hipDiff).toFixed(1)}cm ${hipDiff>=0?'bigger':'smaller'} than this draft.
+            Try ${waistDiff>=0?'adding':'removing'} about ${Math.abs(waistDiff/4).toFixed(1)}cm at the waist and ${hipDiff>=0?'adding':'removing'} about ${Math.abs(hipDiff/4).toFixed(1)}cm at the hip, on each side seam, tapering between the two.
+          </p>` : `
+          <p style="font-size:0.82rem;color:var(--text-dimmer);margin-top:10px;">
+            Enter your measurements in Build Your Avatar on the homepage to see a personalized estimate and fit adjustment tips here.
+          </p>`}
         </div>
       </div>
     </div>
   `;
 }
 
-function sliderRow(key,label,value,patternId){
-  return `<div class="slider-row">
-    <div class="slider-row-top"><span>${label}</span><b>${value} cm</b></div>
-    <input type="range" min="55" max="140" value="${value}" oninput="updateFit('${patternId}','${key}',this.value)">
-  </div>`;
-}
-
-function updateFit(patternId,key,value){
-  state.fitOverrides[patternId][key] = Number(value);
-  renderDetail();
-}
-
 function calcYardage(p, fit){
   const ratio = ((fit.waist/p.base.waist) + (fit.hip/p.base.hip) + (fit.length/p.base.length)) / 3;
   return (Math.round(p.yardageBase * ratio * 10) / 10).toFixed(1);
-}
-
-function fitSilhouette(fit, base){
-  const wRatio = fit.waist/base.waist;
-  const hRatio = fit.hip/base.hip;
-  const lRatio = fit.length/base.length;
-  return `<svg width="90" height="140" viewBox="0 0 90 140">
-    <g transform="translate(45,70) scale(${wRatio.toFixed(2)},${lRatio.toFixed(2)}) translate(-45,-70)">
-      <path d="M45,10 C30,10 30,25 32,35 C20,45 15,70 18,110 L35,110 L38,55 L45,60 L52,55 L55,110 L72,110 C75,70 70,45 58,35 C60,25 60,10 45,10 Z"
-        fill="url(#bodgrad)" opacity="0.9" transform="scale(${(hRatio/wRatio).toFixed(2)},1)" style="transform-origin:45px 70px"/>
-    </g>
-    <defs><linearGradient id="bodgrad" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#ff3ea5"/><stop offset="100%" stop-color="#8b5cf6"/>
-    </linearGradient></defs>
-  </svg>`;
 }
 
 function toggleStep(patternId, index){
@@ -1146,6 +1127,10 @@ navigate('home');
 
     return { schemaVersion: 1, gender, unitSystem: 'metric', fields };
   }
+
+  // Exposed so other parts of the site (like pattern pages) can read the
+  // customer's real entered measurements, always converted to cm/kg.
+  window.getCustomerBodyMeasurements = collectProfile;
 
   function scheduleUpdate() {
     clearTimeout(debounceTimer);
