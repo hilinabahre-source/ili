@@ -752,7 +752,7 @@ let PATTERNS = [
     base:{waist:76,hip:99,length:28},
     pieces:[
       {
-        label:'Front', cut:'Cut 1 on fold', sideSA:0.375, hemSA:0.5,
+        label:'Front', cut:'Cut 1 on fold', sideSA:0.375, hemSA:0.5, tileOverlap:0.5,
         topFold:{x:0,y:0}, topSide:{x:7,y:0},
         hemFold:{x:0,y:11}, hemSide:{x:9.75,y:11},
         curves:[
@@ -761,7 +761,7 @@ let PATTERNS = [
         ]
       },
       {
-        label:'Back', cut:'Cut 1 on fold', sideSA:0.5, hemSA:1,
+        label:'Back', cut:'Cut 1 on fold', sideSA:0.5, hemSA:1, tileOverlap:0.25,
         topFold:{x:0,y:0}, topSide:{x:8,y:0},
         hemFold:{x:0,y:13}, hemSide:{x:10,y:13},
         curves:[
@@ -863,53 +863,57 @@ function printPagePreview(){
   </svg>`;
 }
 
-function assemblyPieceSvg(piece, rows=2, cols=2){
+// Draws the REAL, unmirrored half-piece exactly as it will print, laid out
+// inside a true-to-scale grid of physical print pages (tileW x tileH inches,
+// the real per-piece overlap, rows x cols tiles). This intentionally shows
+// blank paper where the printed page has no pattern content on it, rather
+// than stretching the piece to fill every tile evenly.
+function assemblyPieceSvg(piece, tileW=7.5, tileH=10, rows=2, cols=2){
   const geom = window._iliGeom;
   if(!geom) return '';
-  const { sampleSideCurve, pointsToPath, mirrorPoints } = geom;
+  const { sampleSideCurve, pointsToPath } = geom;
+  const overlap = piece.tileOverlap ?? 0.5;
 
   const { seam: curveSeam } = sampleSideCurve(piece.curves, 0, 12);
   const halfSeam = [piece.topFold, piece.topSide, ...curveSeam, piece.hemFold];
-  const fullSeam = [...mirrorPoints(halfSeam).reverse(), ...halfSeam];
 
-  const allX = fullSeam.map(p=>p.x), allY = fullSeam.map(p=>p.y);
-  const minX = Math.min(...allX), maxX = Math.max(...allX), maxY = Math.max(...allY);
-  const w = maxX-minX, h = maxY;
-  const pad = 10;
-  const targetH = 160;
-  const scale = targetH / h;
-  const svgW = w*scale + pad*2, svgH = h*scale + pad*2;
+  // Canvas size = the true full tiled-page assembly area, independent of
+  // how big the piece itself is — this is what makes the blank space show.
+  const canvasW = tileW*cols - overlap*(cols-1);
+  const canvasH = tileH*rows - overlap*(rows-1);
 
-  function toSvg(p){ return {x:(p.x-minX)*scale+pad, y:p.y*scale+pad}; }
-  const seamPath = pointsToPath(fullSeam.map(toSvg)) + ' Z';
+  const dispW = 140;
+  const scale = dispW / canvasW;
+  const dispH = canvasH * scale;
 
-  const overlapPx = 10;
-  const tileW = (svgW + overlapPx*(cols-1)) / cols;
-  const tileH = (svgH + overlapPx*(rows-1)) / rows;
+  function toSvg(p){ return {x:p.x*scale, y:p.y*scale}; }
+  const seamPath = pointsToPath(halfSeam.map(toSvg)) + ' Z';
+
   let tiles = '';
   for(let r=0;r<rows;r++){
     for(let c=0;c<cols;c++){
-      const tx = c*(tileW-overlapPx), ty = r*(tileH-overlapPx);
+      const tx = c*(tileW-overlap)*scale, ty = r*(tileH-overlap)*scale;
+      const tw = tileW*scale, th = tileH*scale;
       tiles += `
-        <rect x="${tx}" y="${ty}" width="${tileW}" height="${tileH}" fill="none" stroke="#8fa9c2" stroke-width="1"/>
-        <rect x="${tx}" y="${ty}" width="${tileW}" height="${tileH}" fill="none" stroke="#f4d86b" stroke-width="0.75" stroke-dasharray="3 2"/>
-        <circle cx="${tx}" cy="${ty}" r="2.5" fill="none" stroke="#f4d86b" stroke-width="1"/>
-        <circle cx="${tx+tileW}" cy="${ty}" r="2.5" fill="none" stroke="#f4d86b" stroke-width="1"/>
-        <circle cx="${tx}" cy="${ty+tileH}" r="2.5" fill="none" stroke="#f4d86b" stroke-width="1"/>
-        <circle cx="${tx+tileW}" cy="${ty+tileH}" r="2.5" fill="none" stroke="#f4d86b" stroke-width="1"/>`;
+        <rect x="${tx}" y="${ty}" width="${tw}" height="${th}" fill="none" stroke="#8fa9c2" stroke-width="0.75"/>
+        <rect x="${tx}" y="${ty}" width="${tw}" height="${th}" fill="none" stroke="#f4d86b" stroke-width="0.6" stroke-dasharray="3 2"/>
+        <circle cx="${tx}" cy="${ty}" r="2" fill="none" stroke="#f4d86b" stroke-width="0.8"/>
+        <circle cx="${tx+tw}" cy="${ty}" r="2" fill="none" stroke="#f4d86b" stroke-width="0.8"/>
+        <circle cx="${tx}" cy="${ty+th}" r="2" fill="none" stroke="#f4d86b" stroke-width="0.8"/>
+        <circle cx="${tx+tw}" cy="${ty+th}" r="2" fill="none" stroke="#f4d86b" stroke-width="0.8"/>`;
     }
   }
 
-  const dispW = Math.min(svgW, 150);
-  const dispH = svgH * (dispW/svgW);
+  const foldTop = toSvg(piece.topFold), foldBot = toSvg(piece.hemFold);
 
   return `
     <div style="text-align:center;">
-      <svg width="${dispW}" height="${dispH}" viewBox="0 0 ${svgW} ${svgH}">
+      <svg width="${dispW}" height="${dispH}" viewBox="0 0 ${dispW} ${dispH}">
         ${tiles}
-        <path d="${seamPath}" fill="rgba(244,216,107,0.12)" stroke="#f4d86b" stroke-width="1.8"/>
+        <path d="${seamPath}" fill="rgba(244,216,107,0.15)" stroke="#f4d86b" stroke-width="1.6"/>
+        <line x1="${foldTop.x}" y1="${foldTop.y}" x2="${foldBot.x}" y2="${foldBot.y}" stroke="#b9d7f0" stroke-width="1" stroke-dasharray="1 5" opacity="0.7"/>
       </svg>
-      <div style="font-size:0.75rem;color:var(--text-dim);margin-top:4px;">${piece.label}</div>
+      <div style="font-size:0.75rem;color:var(--text-dim);margin-top:4px;">${piece.label} \u2014 ${rows*cols} pages</div>
     </div>`;
 }
 
@@ -921,7 +925,7 @@ function assemblyGuideHtml(p){
       <div style="display:flex;gap:16px;flex-wrap:wrap;justify-content:center;">
         ${p.pieces.map(piece => assemblyPieceSvg(piece)).join('')}
       </div>
-      <p style="font-size:0.78rem;color:var(--text-dimmer);margin-top:10px;">Circles mark where page corners line up. Dashed lines show where one printed page overlaps the next.</p>
+      <p style="font-size:0.78rem;color:var(--text-dimmer);margin-top:10px;">True to scale \u2014 circles mark where page corners line up, dashed borders show the overlap. Blank areas on some pages are normal; the shape doesn't fill every page evenly.</p>
     </div>`;
 }
 
