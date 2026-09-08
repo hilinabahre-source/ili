@@ -740,14 +740,6 @@ const DIFF_COLOR = {'Beginner':'lime','Intermediate':'orange','Advanced':'pink'}
    ============================================================ */
 let PATTERNS = [
   {
-    id:'pattern-1', name:'Zendaya black-and-white striped halter dress with a red ruffled mermaid hem', trend:'', difficulty:'',
-    time:'', fabric:'', image:'17554d3131e604eeb23e9f1c85e2f81b.jpg', emoji:'', yardageBase:0,
-    base:{waist:0,hip:0,length:0},
-    steps:[
-      {title:'Coming soon', text:'Details will be added soon.', diagram:'pin'}
-    ]
-  },
-  {
     id:'pattern-2', name:'White Mini Skirt', trend:'Clean Girl', difficulty:'Beginner',
     time:'2-3 hrs', fabric:'Lightweight cotton, twill, or denim', image:'9efbbe16addf710e619484c72c59090f.jpg', emoji:'', yardageBase:1,
     base:{waist:76,hip:99,length:28},
@@ -780,6 +772,14 @@ let PATTERNS = [
       {title:'Sew the side seams', text:'With right sides together, pin the front and back pieces along both side seams and stitch. Finish the raw edges (serge, zigzag, or pinking shears) to prevent fraying.', diagram:'seam'},
       {title:'Finish the waist', text:'Fold and press the waist seam allowance to the inside, then topstitch it down \u2014 or attach a separate waistband here if you\'d like one.', diagram:'attach'},
       {title:'Hem the skirt', text:'Fold and press the hem allowance on both front (1/2") and back (1") \u2014 the back\'s deeper hem is what gives the dipped-back silhouette. Stitch in place all the way around.', diagram:'hem'}
+    ]
+  },
+  {
+    id:'pattern-1', name:'Zendaya Spiderman Dress', trend:'', difficulty:'', comingSoon:true,
+    time:'', fabric:'', image:'17554d3131e604eeb23e9f1c85e2f81b.jpg', emoji:'', yardageBase:0,
+    base:{waist:0,hip:0,length:0},
+    steps:[
+      {title:'Coming soon', text:'Details will be added soon.', diagram:'pin'}
     ]
   }
 ]
@@ -1055,8 +1055,10 @@ function renderBrowse(){
       <div class="pattern-body">
         <h3>${p.name}</h3>
         <div class="pattern-meta">
+          ${p.comingSoon ? `<span class="pill pill-purple">Coming soon</span>` : `
           ${p.trend?`<span class="pill pill-${TREND_COLOR[p.trend]}">${p.trend}</span>`:''}
           ${p.difficulty?`<span class="pill pill-${DIFF_COLOR[p.difficulty]}">${p.difficulty}</span>`:''}
+          `}
         </div>
         <div class="pattern-foot">
           <span>${p.time?`⏱ ${p.time}`:''}${p.time?' ':''}${stepProgressLabel(p.id)}</span>
