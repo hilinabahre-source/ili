@@ -727,11 +727,11 @@ const state = {
 };
 
 const EMOJI_CHOICES = ['🧵','🧶','✂️','🎀','👖','👗','🩳','🧥','👚','💿'];
-const TRENDS = ['Y2K Streetwear','Coquette','Clubcore','Cottagecore','Grunge Upcycle','Balletcore'];
+const TRENDS = ['Y2K Streetwear','Coquette','Clubcore','Cottagecore','Grunge Upcycle','Balletcore','Clean Girl'];
 const DIFFICULTIES = ['Beginner','Intermediate','Advanced'];
 const TREND_COLOR = {
   'Y2K Streetwear':'pink','Coquette':'purple','Clubcore':'lime','Cottagecore':'orange',
-  'Grunge Upcycle':'purple','Balletcore':'pink'
+  'Grunge Upcycle':'purple','Balletcore':'pink','Clean Girl':'lime'
 };
 const DIFF_COLOR = {'Beginner':'lime','Intermediate':'orange','Advanced':'pink'};
 
@@ -748,7 +748,7 @@ let PATTERNS = [
     ]
   },
   {
-    id:'pattern-2', name:'White Mini Skirt', trend:'Y2K Streetwear', difficulty:'Beginner',
+    id:'pattern-2', name:'White Mini Skirt', trend:'Clean Girl', difficulty:'Beginner',
     time:'2-3 hrs', fabric:'Lightweight cotton, twill, or denim', image:'9efbbe16addf710e619484c72c59090f.jpg', emoji:'', yardageBase:1,
     base:{waist:76,hip:99,length:28},
     pieces:[
@@ -1106,7 +1106,7 @@ function renderDetail(){
 
   el.innerHTML = `
     <div class="detail-head">
-      <div class="detail-thumb" style="background:${thumbGradient(TREND_COLOR[p.trend])}">${p.emoji}</div>
+      <div class="detail-thumb" style="background:${p.image?'#f9f5ef':thumbGradient(TREND_COLOR[p.trend])};overflow:hidden;">${p.image?`<img src="${p.image}" style="width:100%;height:100%;object-fit:cover;"/>`:p.emoji}</div>
       <div class="detail-info">
         <div class="detail-meta">
           <span class="pill pill-${TREND_COLOR[p.trend]}">${p.trend}</span>
