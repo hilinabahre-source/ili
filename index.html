@@ -395,6 +395,7 @@ footer{text-align:center;padding:50px 20px 20px;color:var(--text-dimmer);font-si
     <button id="closeConstructionModal" style="position:absolute; top:16px; right:18px; background:none; border:none; font-size:24px; cursor:pointer; color:#f4d86b;">&times;</button>
     <h3 style="margin-top:0; font-family:'Unbounded',sans-serif; color:#f4d86b;">Pattern Construction</h3>
     <p id="constructionSubtitle" style="font-size:13px; color:#b9d7f0; margin-bottom:20px;"></p>
+    <div id="constructionMeasurements"></div>
     <div id="constructionDiagram" style="display:flex; gap:24px; flex-wrap:wrap; justify-content:center;"></div>
   </div>
 </div>
@@ -405,7 +406,7 @@ footer{text-align:center;padding:50px 20px 20px;color:var(--text-dimmer);font-si
     const closeBtn = document.getElementById('closeConstructionModal');
     const subtitle = document.getElementById('constructionSubtitle');
     const diagramWrap = document.getElementById('constructionDiagram');
-
+    const measurementsWrap = document.getElementById('constructionMeasurements');
     function bez(p0,c1,c2,p3,t){
       const mt=1-t;
       return {
@@ -446,7 +447,35 @@ footer{text-align:center;padding:50px 20px 20px;color:var(--text-dimmer);font-si
     function mirrorPoints(points){
       return points.map(p => ({x:-p.x, y:p.y}));
     }
-
+    function measurementsHtml(p){
+  const customer = (window.getCustomerBodyMeasurements ? window.getCustomerBodyMeasurements().fields : {}) || {};
+  const rows = [
+    {label:'Waist', drafted:p.base.waist, yours:customer.waistGirth},
+    {label:'Hip', drafted:p.base.hip, yours:customer.hipGirth},
+    {label:'Length', drafted:p.base.length, yours:customer.crotchHeight}
+  ];
+  return `
+    <div style="width:100%;margin-bottom:20px;">
+      <div style="font-size:0.78rem;color:#b9d7f0;text-transform:uppercase;letter-spacing:.04em;margin-bottom:10px;">This pattern was drafted for</div>
+      <table style="width:100%;border-collapse:collapse;font-size:0.9rem;">
+        <thead>
+          <tr style="color:#8fa9c2;text-align:left;">
+            <th style="padding:4px 0;font-weight:500;"></th>
+            <th style="padding:4px 0;font-weight:500;">Drafted</th>
+            <th style="padding:4px 0;font-weight:500;">Yours</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map(r => `
+            <tr style="border-top:1px solid rgba(244,216,107,0.15);">
+              <td style="padding:6px 0;color:#f9f5ef;">${r.label}</td>
+              <td style="padding:6px 0;color:#f9f5ef;">${r.drafted} cm</td>
+              <td style="padding:6px 0;color:${r.yours!=null ? '#f4d86b' : '#58718a'};">${r.yours!=null ? r.yours.toFixed(1)+' cm' : 'not entered'}</td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`;
+}
     function pieceSvg(piece){
       const { seam: curveSeam, allowance: curveAllow } = sampleSideCurve(piece.curves, piece.sideSA, 12);
 
@@ -495,13 +524,14 @@ footer{text-align:center;padding:50px 20px 20px;color:var(--text-dimmer);font-si
         </div>`;
     }
 
-    window.openConstructionModal = function(patternId){
-      const p = PATTERNS.find(x => x.id === patternId);
-      if (!p || !p.pieces) return;
-      subtitle.textContent = `${p.pieces.length} pattern piece${p.pieces.length === 1 ? '' : 's'} \u2014 fold line shown as center dashed line`;
-      diagramWrap.innerHTML = p.pieces.map(pieceSvg).join('');
-      modal.style.display = 'flex';
-    };
+   window.openConstructionModal = function(patternId){
+  const p = PATTERNS.find(x => x.id === patternId);
+  if (!p || !p.pieces) return;
+  subtitle.textContent = `${p.pieces.length} pattern piece${p.pieces.length === 1 ? '' : 's'} \u2014 fold line shown as center dashed line`;
+  measurementsWrap.innerHTML = measurementsHtml(p);
+  diagramWrap.innerHTML = p.pieces.map(pieceSvg).join('');
+  modal.style.display = 'flex';
+};
 
     closeBtn.addEventListener('click', () => { modal.style.display = 'none'; });
     modal.addEventListener('click', (e) => { if (e.target === modal) modal.style.display = 'none'; });
