@@ -449,6 +449,10 @@ footer{text-align:center;padding:50px 20px 20px;color:var(--text-dimmer);font-si
       return points.map(p => ({x:-p.x, y:p.y}));
     }
 
+    // Exposed so other parts of the site (like the pattern detail sidebar)
+    // can reuse the same curve math to draw accurate piece outlines.
+    window._iliGeom = { sampleSideCurve, pointsToPath, mirrorPoints };
+
     function measurementsHtml(p){
       const customer = (window.getCustomerBodyMeasurements ? window.getCustomerBodyMeasurements().fields : {}) || {};
       const rows = [
@@ -846,6 +850,81 @@ function constructionIcon(){
   </svg>`;
 }
 
+function printPagePreview(){
+  return `<svg width="26" height="34" viewBox="0 0 60 78" style="flex-shrink:0;">
+    <title>Print-ready pattern pages with alignment marks</title>
+    <rect x="4" y="4" width="52" height="70" rx="2" fill="none" stroke="#8fa9c2" stroke-width="1.5"/>
+    <rect x="4" y="4" width="52" height="70" rx="2" fill="none" stroke="#f4d86b" stroke-width="1" stroke-dasharray="3 2"/>
+    <circle cx="4" cy="4" r="2.5" fill="none" stroke="#f4d86b" stroke-width="1"/>
+    <circle cx="56" cy="4" r="2.5" fill="none" stroke="#f4d86b" stroke-width="1"/>
+    <circle cx="4" cy="74" r="2.5" fill="none" stroke="#f4d86b" stroke-width="1"/>
+    <circle cx="56" cy="74" r="2.5" fill="none" stroke="#f4d86b" stroke-width="1"/>
+    <rect x="14" y="14" width="12" height="12" fill="none" stroke="#8fa9c2" stroke-width="1"/>
+  </svg>`;
+}
+
+function assemblyPieceSvg(piece, rows=2, cols=2){
+  const geom = window._iliGeom;
+  if(!geom) return '';
+  const { sampleSideCurve, pointsToPath, mirrorPoints } = geom;
+
+  const { seam: curveSeam } = sampleSideCurve(piece.curves, 0, 12);
+  const halfSeam = [piece.topFold, piece.topSide, ...curveSeam, piece.hemFold];
+  const fullSeam = [...mirrorPoints(halfSeam).reverse(), ...halfSeam];
+
+  const allX = fullSeam.map(p=>p.x), allY = fullSeam.map(p=>p.y);
+  const minX = Math.min(...allX), maxX = Math.max(...allX), maxY = Math.max(...allY);
+  const w = maxX-minX, h = maxY;
+  const pad = 10;
+  const targetH = 160;
+  const scale = targetH / h;
+  const svgW = w*scale + pad*2, svgH = h*scale + pad*2;
+
+  function toSvg(p){ return {x:(p.x-minX)*scale+pad, y:p.y*scale+pad}; }
+  const seamPath = pointsToPath(fullSeam.map(toSvg)) + ' Z';
+
+  const overlapPx = 10;
+  const tileW = (svgW + overlapPx*(cols-1)) / cols;
+  const tileH = (svgH + overlapPx*(rows-1)) / rows;
+  let tiles = '';
+  for(let r=0;r<rows;r++){
+    for(let c=0;c<cols;c++){
+      const tx = c*(tileW-overlapPx), ty = r*(tileH-overlapPx);
+      tiles += `
+        <rect x="${tx}" y="${ty}" width="${tileW}" height="${tileH}" fill="none" stroke="#8fa9c2" stroke-width="1"/>
+        <rect x="${tx}" y="${ty}" width="${tileW}" height="${tileH}" fill="none" stroke="#f4d86b" stroke-width="0.75" stroke-dasharray="3 2"/>
+        <circle cx="${tx}" cy="${ty}" r="2.5" fill="none" stroke="#f4d86b" stroke-width="1"/>
+        <circle cx="${tx+tileW}" cy="${ty}" r="2.5" fill="none" stroke="#f4d86b" stroke-width="1"/>
+        <circle cx="${tx}" cy="${ty+tileH}" r="2.5" fill="none" stroke="#f4d86b" stroke-width="1"/>
+        <circle cx="${tx+tileW}" cy="${ty+tileH}" r="2.5" fill="none" stroke="#f4d86b" stroke-width="1"/>`;
+    }
+  }
+
+  const dispW = Math.min(svgW, 150);
+  const dispH = svgH * (dispW/svgW);
+
+  return `
+    <div style="text-align:center;">
+      <svg width="${dispW}" height="${dispH}" viewBox="0 0 ${svgW} ${svgH}">
+        ${tiles}
+        <path d="${seamPath}" fill="rgba(244,216,107,0.12)" stroke="#f4d86b" stroke-width="1.8"/>
+      </svg>
+      <div style="font-size:0.75rem;color:var(--text-dim);margin-top:4px;">${piece.label}</div>
+    </div>`;
+}
+
+function assemblyGuideHtml(p){
+  if(!p.pieces || !p.pieces.length) return '';
+  return `
+    <div class="sidebar-card">
+      <h3>🧩 How the pages tape together</h3>
+      <div style="display:flex;gap:16px;flex-wrap:wrap;justify-content:center;">
+        ${p.pieces.map(piece => assemblyPieceSvg(piece)).join('')}
+      </div>
+      <p style="font-size:0.78rem;color:var(--text-dimmer);margin-top:10px;">Circles mark where page corners line up. Dashed lines show where one printed page overlaps the next.</p>
+    </div>`;
+}
+
 function thumbGradient(colorKey){
   const map = {
     pink:'linear-gradient(135deg,#ff3ea5,#8b5cf6)',
@@ -920,7 +999,10 @@ function renderBrowse(){
           ${p.trend?`<span class="pill pill-${TREND_COLOR[p.trend]}">${p.trend}</span>`:''}
           ${p.difficulty?`<span class="pill pill-${DIFF_COLOR[p.difficulty]}">${p.difficulty}</span>`:''}
         </div>
-        <div class="pattern-foot"><span>${p.time?`⏱ ${p.time}`:''}${p.time?' ':''}${stepProgressLabel(p.id)}</span></div>
+        <div class="pattern-foot">
+          <span>${p.time?`⏱ ${p.time}`:''}${p.time?' ':''}${stepProgressLabel(p.id)}</span>
+          ${p.files && p.files.length ? `<span style="display:flex;align-items:center;">${printPagePreview()}</span>` : ''}
+        </div>
       </div>
     </div>`).join('');
 }
@@ -1020,6 +1102,7 @@ function renderDetail(){
             Enter your measurements in Build Your Avatar on the homepage to see a personalized estimate and fit adjustment tips here.
           </p>`}
         </div>
+        ${p.pieces && p.pieces.length ? assemblyGuideHtml(p) : ''}
       </div>
     </div>
   `;
