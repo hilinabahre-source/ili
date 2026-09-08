@@ -722,7 +722,8 @@ const state = {
   createTrend: null,
   createDiff: 'Beginner',
   createEmoji: '🧵',
-  requests: []                 // pattern requests forum
+  requests: [],                // pattern requests forum
+  miniJellyShownFor: {}        // { patternId: true } once its assembly-guide mini-Jelly has auto-popped
 };
 
 const EMOJI_CHOICES = ['🧵','🧶','✂️','🎀','👖','👗','🩳','🧥','👚','💿'];
@@ -885,6 +886,8 @@ function assemblyPieceSvg(piece, tileW=7.5, tileH=10, rows=2, cols=2){
   const dispW = 140;
   const scale = dispW / canvasW;
   const dispH = canvasH * scale;
+  const labelMargin = 42;
+  const totalW = dispW + labelMargin;
 
   function toSvg(p){ return {x:p.x*scale, y:p.y*scale}; }
   const seamPath = pointsToPath(halfSeam.map(toSvg)) + ' Z';
@@ -906,26 +909,78 @@ function assemblyPieceSvg(piece, tileW=7.5, tileH=10, rows=2, cols=2){
 
   const foldTop = toSvg(piece.topFold), foldBot = toSvg(piece.hemFold);
 
+  // Waist label points at the midpoint of the flat top edge (fold to side).
+  const waistAnchor = toSvg({x:(piece.topFold.x+piece.topSide.x)/2, y:piece.topFold.y});
+  // Hem label points at the midpoint of the flat bottom edge (fold to hem-side corner).
+  const hemEndPoint = curveSeam[curveSeam.length-1];
+  const hemAnchor = toSvg({x:(piece.hemFold.x+hemEndPoint.x)/2, y:piece.hemFold.y});
+
   return `
     <div style="text-align:center;">
-      <svg width="${dispW}" height="${dispH}" viewBox="0 0 ${dispW} ${dispH}">
+      <svg width="${totalW}" height="${dispH}" viewBox="0 0 ${totalW} ${dispH}">
         ${tiles}
         <path d="${seamPath}" fill="rgba(244,216,107,0.15)" stroke="#f4d86b" stroke-width="1.6"/>
         <line x1="${foldTop.x}" y1="${foldTop.y}" x2="${foldBot.x}" y2="${foldBot.y}" stroke="#b9d7f0" stroke-width="1" stroke-dasharray="1 5" opacity="0.7"/>
+        <line x1="${waistAnchor.x}" y1="${waistAnchor.y}" x2="${dispW+6}" y2="10" stroke="#38506c" stroke-width="0.6" stroke-dasharray="1 3"/>
+        <text x="${dispW+8}" y="12" font-size="8" fill="#38506c" font-family="Space Grotesk, sans-serif">Waist</text>
+        <line x1="${hemAnchor.x}" y1="${hemAnchor.y}" x2="${dispW+6}" y2="${dispH-8}" stroke="#38506c" stroke-width="0.6" stroke-dasharray="1 3"/>
+        <text x="${dispW+8}" y="${dispH-6}" font-size="8" fill="#38506c" font-family="Space Grotesk, sans-serif">Hem</text>
       </svg>
       <div style="font-size:0.75rem;color:var(--text-dim);margin-top:4px;">${piece.label} \u2014 ${rows*cols} pages</div>
     </div>`;
 }
 
+// A compact jellyfish icon for the mini-Jelly that lives inside the
+// assembly-guide card, visually matching the main jellyfish helper.
+function miniJellySvg(){
+  return `<svg viewBox="0 0 100 120" width="36" height="43" style="filter:drop-shadow(0 6px 12px rgba(18,49,77,0.25));">
+    <defs>
+      <linearGradient id="miniJellyGrad" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#ff9fd6"/>
+        <stop offset="100%" stop-color="#8b5cf6"/>
+      </linearGradient>
+    </defs>
+    <path d="M20,55 C20,18 80,18 80,55 C80,66 70,60 65,54 C65,66 55,60 50,54 C50,66 40,60 35,54 C35,66 25,60 20,55 Z" fill="url(#miniJellyGrad)"/>
+    <circle cx="38" cy="40" r="4" fill="#102d44"/>
+    <circle cx="62" cy="40" r="4" fill="#102d44"/>
+    <path d="M42,49 Q50,55 58,49" stroke="#102d44" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <path d="M30,58 Q25,76 30,94 Q35,76 30,58" fill="#ff9fd6" opacity="0.85"/>
+    <path d="M44,58 Q39,80 44,102 Q49,80 44,58" fill="#c4b0fb" opacity="0.85"/>
+    <path d="M56,58 Q51,80 56,102 Q61,80 56,58" fill="#ff9fd6" opacity="0.85"/>
+    <path d="M70,58 Q65,76 70,94 Q75,76 70,58" fill="#c4b0fb" opacity="0.85"/>
+  </svg>`;
+}
+
+// Shows/hides the small tooltip bubble next to the mini-Jelly icon inside
+// the assembly-guide card. Kept separate from the main fixed jellyfish's
+// showTip/hideTip so the two never interfere with each other.
+function showMiniJelly(id){
+  const el = document.getElementById(id+'-bubble');
+  if(el){ el.style.opacity='1'; el.style.transform='translateY(0) scale(1)'; el.style.pointerEvents='auto'; }
+}
+function hideMiniJelly(id){
+  const el = document.getElementById(id+'-bubble');
+  if(el){ el.style.opacity='0'; el.style.transform='translateY(6px) scale(.94)'; el.style.pointerEvents='none'; }
+}
+
 function assemblyGuideHtml(p){
   if(!p.pieces || !p.pieces.length) return '';
+  const miniId = 'miniJelly-'+p.id;
   return `
-    <div class="sidebar-card">
+    <div class="sidebar-card" style="position:relative;">
       <h3>🧩 How the pages tape together</h3>
       <div style="display:flex;gap:16px;flex-wrap:wrap;justify-content:center;">
         ${p.pieces.map(piece => assemblyPieceSvg(piece)).join('')}
       </div>
       <p style="font-size:0.78rem;color:var(--text-dimmer);margin-top:10px;">True to scale \u2014 circles mark where page corners line up, dashed borders show the overlap. Blank areas on some pages are normal; the shape doesn't fill every page evenly.</p>
+      <p style="font-size:0.78rem;color:var(--text-dim);margin-top:8px;padding-top:8px;border-top:1px solid var(--border);">🪡 <b>Before you cut:</b> fold your fabric in half, line the pattern's fold edge up with your fabric's fold, and cut through both layers at once \u2014 this half-piece becomes a full front (or back) once cut on the fold.</p>
+      <div style="position:absolute;bottom:-16px;right:-8px;cursor:pointer;z-index:3;" onmouseenter="showMiniJelly('${miniId}')" onmouseleave="hideMiniJelly('${miniId}')">
+        <div id="${miniId}-bubble" style="position:absolute;bottom:44px;right:0;width:180px;background:#faf8f4;border:1px solid rgba(18,49,77,0.12);border-radius:14px;padding:10px 14px;font-size:0.76rem;line-height:1.4;color:#12314d;box-shadow:0 8px 20px rgba(18,49,77,0.18);opacity:0;transform:translateY(6px) scale(.94);pointer-events:none;transition:opacity .2s ease, transform .2s ease;">
+          <b style="display:block;font-family:'Unbounded',sans-serif;font-size:0.7rem;margin-bottom:3px;">Jelly says:</b>
+          Don't forget \u2014 fold your fabric first, then cut through both layers so you get a whole piece, not just half! ✂️
+        </div>
+        ${miniJellySvg()}
+      </div>
     </div>`;
 }
 
@@ -1110,6 +1165,18 @@ function renderDetail(){
       </div>
     </div>
   `;
+
+  // Let the main Jelly bubble finish its own pop-up first (she auto-hides
+  // after 9s), then have the assembly-guide's mini-Jelly take a turn once
+  // per pattern \u2014 never repeats on later re-renders of the same pattern.
+  if(p.pieces && p.pieces.length && !state.miniJellyShownFor[p.id]){
+    state.miniJellyShownFor[p.id] = true;
+    const miniId = 'miniJelly-'+p.id;
+    setTimeout(() => {
+      showMiniJelly(miniId);
+      setTimeout(() => hideMiniJelly(miniId), 6000);
+    }, 9500);
+  }
 }
 
 function calcYardage(p, fit){
@@ -1623,7 +1690,7 @@ navigate('home');
   const TIPS = {
     'view-home': "Let's make your avatar! ✨ Scroll down to Build Your Avatar and enter your measurements. Measure height barefoot, chest around the fullest part, waist at your natural waistline, and hip at the widest point for the best fit.",
     'view-browse': "Looking for a pattern? Filter by trend or difficulty up top to find your vibe faster!",
-    'view-detail': "Tap 📐 Construction to see this pattern's actual pieces — front, back, seam allowances and all. Your fabric estimate in the sidebar updates once you've entered your measurements in Build Your Avatar!",
+    'view-detail': "Tap 📐 Construction to see this pattern's actual pieces — front, back, seam allowances and all. Heads up: the printed pages only show half the piece! Fold your fabric in half first, line up the pattern's fold edge with your fabric's fold, then cut through both layers at once to get a full front or back piece.",
     'view-create': "Building your own pattern? Clear, simple steps help other sewers follow along easily.",
     'view-request': "The more detail you give (inspo pics, silhouette, fit notes), the better chance we bring it to life!",
     'view-mypatterns': "This is your stash! Come back anytime to pick up right where you left off."
