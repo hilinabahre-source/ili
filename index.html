@@ -407,6 +407,7 @@ footer{text-align:center;padding:50px 20px 20px;color:var(--text-dimmer);font-si
     const subtitle = document.getElementById('constructionSubtitle');
     const diagramWrap = document.getElementById('constructionDiagram');
     const measurementsWrap = document.getElementById('constructionMeasurements');
+
     function bez(p0,c1,c2,p3,t){
       const mt=1-t;
       return {
@@ -447,35 +448,37 @@ footer{text-align:center;padding:50px 20px 20px;color:var(--text-dimmer);font-si
     function mirrorPoints(points){
       return points.map(p => ({x:-p.x, y:p.y}));
     }
+
     function measurementsHtml(p){
-  const customer = (window.getCustomerBodyMeasurements ? window.getCustomerBodyMeasurements().fields : {}) || {};
-  const rows = [
-    {label:'Waist', drafted:p.base.waist, yours:customer.waistGirth},
-    {label:'Hip', drafted:p.base.hip, yours:customer.hipGirth},
-    {label:'Length', drafted:p.base.length, yours:customer.crotchHeight}
-  ];
-  return `
-    <div style="width:100%;margin-bottom:20px;">
-      <div style="font-size:0.78rem;color:#b9d7f0;text-transform:uppercase;letter-spacing:.04em;margin-bottom:10px;">This pattern was drafted for</div>
-      <table style="width:100%;border-collapse:collapse;font-size:0.9rem;">
-        <thead>
-          <tr style="color:#8fa9c2;text-align:left;">
-            <th style="padding:4px 0;font-weight:500;"></th>
-            <th style="padding:4px 0;font-weight:500;">Drafted</th>
-            <th style="padding:4px 0;font-weight:500;">Yours</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${rows.map(r => `
-            <tr style="border-top:1px solid rgba(244,216,107,0.15);">
-              <td style="padding:6px 0;color:#f9f5ef;">${r.label}</td>
-              <td style="padding:6px 0;color:#f9f5ef;">${r.drafted} cm</td>
-              <td style="padding:6px 0;color:${r.yours!=null ? '#f4d86b' : '#58718a'};">${r.yours!=null ? r.yours.toFixed(1)+' cm' : 'not entered'}</td>
-            </tr>`).join('')}
-        </tbody>
-      </table>
-    </div>`;
-}
+      const customer = (window.getCustomerBodyMeasurements ? window.getCustomerBodyMeasurements().fields : {}) || {};
+      const rows = [
+        {label:'Waist', drafted:p.base.waist, yours:customer.waistGirth},
+        {label:'Hip', drafted:p.base.hip, yours:customer.hipGirth},
+        {label:'Length', drafted:p.base.length, yours:customer.crotchHeight}
+      ];
+      return `
+        <div style="width:100%;margin-bottom:20px;">
+          <div style="font-size:0.78rem;color:#b9d7f0;text-transform:uppercase;letter-spacing:.04em;margin-bottom:10px;">This pattern was drafted for</div>
+          <table style="width:100%;border-collapse:collapse;font-size:0.9rem;">
+            <thead>
+              <tr style="color:#8fa9c2;text-align:left;">
+                <th style="padding:4px 0;font-weight:500;"></th>
+                <th style="padding:4px 0;font-weight:500;">Drafted</th>
+                <th style="padding:4px 0;font-weight:500;">Yours</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rows.map(r => `
+                <tr style="border-top:1px solid rgba(244,216,107,0.15);">
+                  <td style="padding:6px 0;color:#f9f5ef;">${r.label}</td>
+                  <td style="padding:6px 0;color:#f9f5ef;">${r.drafted} cm</td>
+                  <td style="padding:6px 0;color:${r.yours!=null ? '#f4d86b' : '#58718a'};">${r.yours!=null ? r.yours.toFixed(1)+' cm' : 'not entered'}</td>
+                </tr>`).join('')}
+            </tbody>
+          </table>
+        </div>`;
+    }
+
     function pieceSvg(piece){
       const { seam: curveSeam, allowance: curveAllow } = sampleSideCurve(piece.curves, piece.sideSA, 12);
 
@@ -524,14 +527,14 @@ footer{text-align:center;padding:50px 20px 20px;color:var(--text-dimmer);font-si
         </div>`;
     }
 
-   window.openConstructionModal = function(patternId){
-  const p = PATTERNS.find(x => x.id === patternId);
-  if (!p || !p.pieces) return;
-  subtitle.textContent = `${p.pieces.length} pattern piece${p.pieces.length === 1 ? '' : 's'} \u2014 fold line shown as center dashed line`;
-  measurementsWrap.innerHTML = measurementsHtml(p);
-  diagramWrap.innerHTML = p.pieces.map(pieceSvg).join('');
-  modal.style.display = 'flex';
-};
+    window.openConstructionModal = function(patternId){
+      const p = PATTERNS.find(x => x.id === patternId);
+      if (!p || !p.pieces) return;
+      subtitle.textContent = `${p.pieces.length} pattern piece${p.pieces.length === 1 ? '' : 's'} \u2014 fold line shown as center dashed line`;
+      measurementsWrap.innerHTML = measurementsHtml(p);
+      diagramWrap.innerHTML = p.pieces.map(pieceSvg).join('');
+      modal.style.display = 'flex';
+    };
 
     closeBtn.addEventListener('click', () => { modal.style.display = 'none'; });
     modal.addEventListener('click', (e) => { if (e.target === modal) modal.style.display = 'none'; });
@@ -829,13 +832,20 @@ function svgDiagram(type){
     default: return `<svg ${common}><rect x="30" y="25" width="180" height="60" rx="6" fill="${fabric}"/></svg>`;
   }
 }
-function svgDiagram(type){
-  ... (all your existing seam/fold/pin/etc. cases) ...
-}
 
 function constructionIcon(){
-  return `<svg ...>...</svg>`;
+  return `<svg viewBox="0 0 120 90" width="20" height="15" style="vertical-align:-3px;display:inline-block;margin-left:5px;">
+    <g fill="none" stroke="#102d44" stroke-width="1.4">
+      <path d="M22,10 L38,10 L44,34 L16,34 Z"/>
+      <line x1="22" y1="10" x2="38" y2="10" stroke-width="2.2"/>
+      <line x1="30" y1="10" x2="30" y2="34" stroke-width="0.8" stroke-dasharray="2 2"/>
+      <path d="M78,10 L94,10 L100,34 L72,34 Z"/>
+      <line x1="78" y1="10" x2="94" y2="10" stroke-width="2.2"/>
+      <line x1="86" y1="10" x2="86" y2="34" stroke-width="0.8"/>
+    </g>
+  </svg>`;
 }
+
 function thumbGradient(colorKey){
   const map = {
     pink:'linear-gradient(135deg,#ff3ea5,#8b5cf6)',
@@ -964,7 +974,7 @@ function renderDetail(){
         <h1>${p.name}</h1>
         <div class="detail-facts">
           <div class="detail-fact ${p.pieces && p.pieces.length ? 'detail-fact-clickable' : ''}" ${p.pieces && p.pieces.length ? `onclick="openConstructionModal('${p.id}')"` : ''}>
-            <span>Construction</span><b>${p.pieces && p.pieces.length ? `${p.pieces.length} pieces 📐` : '—'}</b>
+            <span>Construction</span><b>${p.pieces && p.pieces.length ? `${p.pieces.length} pieces ${constructionIcon()}` : '—'}</b>
           </div>
           <div class="detail-fact"><span>Fabric</span><b>${p.fabric}</b></div>
           <div class="detail-fact"><span>Steps</span><b>${p.steps.length}</b></div>
@@ -1526,7 +1536,7 @@ navigate('home');
   const TIPS = {
     'view-home': "Let's make your avatar! ✨ Scroll down to Build Your Avatar and enter your measurements. Measure height barefoot, chest around the fullest part, waist at your natural waistline, and hip at the widest point for the best fit.",
     'view-browse': "Looking for a pattern? Filter by trend or difficulty up top to find your vibe faster!",
-    'view-detail': "Drag the sliders on the right to customize this pattern to your measurements \u2014 the fabric estimate updates live!",
+    'view-detail': "Tap 📐 Construction to see this pattern's actual pieces — front, back, seam allowances and all. Your fabric estimate in the sidebar updates once you've entered your measurements in Build Your Avatar!",
     'view-create': "Building your own pattern? Clear, simple steps help other sewers follow along easily.",
     'view-request': "The more detail you give (inspo pics, silhouette, fit notes), the better chance we bring it to life!",
     'view-mypatterns': "This is your stash! Come back anytime to pick up right where you left off."
