@@ -799,7 +799,13 @@ function svgDiagram(type){
     default: return `<svg ${common}><rect x="30" y="25" width="180" height="60" rx="6" fill="${fabric}"/></svg>`;
   }
 }
+function svgDiagram(type){
+  ... (all your existing seam/fold/pin/etc. cases) ...
+}
 
+function constructionIcon(){
+  return `<svg ...>...</svg>`;
+}
 function thumbGradient(colorKey){
   const map = {
     pink:'linear-gradient(135deg,#ff3ea5,#8b5cf6)',
