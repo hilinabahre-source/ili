@@ -566,6 +566,11 @@ footer{text-align:center;padding:50px 20px 20px;color:var(--text-dimmer);font-si
         title: 'Sudan, world\u2019s largest humanitarian crisis, receives glimmer of hope',
         source: 'Final Call News \u00b7 Sept 1, 2026',
         url: 'https://new.finalcall.com/2026/09/01/sudan-worlds-largest-humanitarian-crisis-receives-glimmer-of-hope/'
+      },
+      charity: {
+        name: 'UNHCR \u2014 Sudan Emergency',
+        note: '4-star Charity Navigator rating',
+        url: 'https://donate.unhcr.org/int/en/sudan-emergency'
       }
     },
     {
@@ -575,6 +580,11 @@ footer{text-align:center;padding:50px 20px 20px;color:var(--text-dimmer);font-si
         title: 'Humanitarian Situation Report \u2014 10 July 2026',
         source: 'OCHA (occupied Palestinian territory)',
         url: 'https://www.ochaopt.org/content/humanitarian-situation-report-10-july-2026'
+      },
+      charity: {
+        name: 'UNRWA \u2014 Gaza Emergency Appeal',
+        note: 'UN agency for Palestine refugees',
+        url: 'https://donate.unrwa.org/int/en/gaza'
       }
     },
     {
@@ -584,6 +594,11 @@ footer{text-align:center;padding:50px 20px 20px;color:var(--text-dimmer);font-si
         title: 'Five years after the Taliban takeover: the normalization of the exclusion of women and girls in Afghanistan',
         source: 'UN Women \u00b7 Aug 2026',
         url: 'https://www.unwomen.org/en/news-stories/press-release/2026/08/five-years-after-the-taliban-takeover-the-normalization-of-the-exclusion-of-women-and-girls-in-afghanistan'
+      },
+      charity: {
+        name: 'UN Women',
+        note: 'Funds direct services for Afghan women and girls',
+        url: 'https://donate.unwomen.org/en'
       }
     },
     {
@@ -593,6 +608,11 @@ footer{text-align:center;padding:50px 20px 20px;color:var(--text-dimmer);font-si
         title: 'Ethiopia crisis: Why millions need support\u2014and how you can help',
         source: 'International Rescue Committee \u00b7 June 2026',
         url: 'https://www.rescue.org/article/ethiopia-crisis-why-millions-need-support-and-how-you-can-help'
+      },
+      charity: {
+        name: 'International Rescue Committee',
+        note: '4-star Charity Navigator, 96% score',
+        url: 'https://help.rescue.org/donate'
       }
     }
   ];
@@ -605,7 +625,14 @@ footer{text-align:center;padding:50px 20px 20px;color:var(--text-dimmer);font-si
         <a href="${cause.article.url}" target="_blank" rel="noopener" style="display:inline-flex; align-items:center; gap:6px; font-size:0.8rem; color:#b9d7f0; text-decoration:underline; text-decoration-color:rgba(185,215,240,0.4);">
           ${cause.article.title} \u2197
         </a>
-        <div style="font-size:0.72rem; color:#8fa9c2; margin-top:4px;">${cause.article.source}</div>
+        <div style="font-size:0.72rem; color:#8fa9c2; margin-top:4px; margin-bottom:12px;">${cause.article.source}</div>
+        <div style="border-top:1px solid rgba(244,216,107,0.15); padding-top:12px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+          <div>
+            <div style="font-size:0.85rem; color:#f9f5ef; font-weight:600;">${cause.charity.name}</div>
+            <div style="font-size:0.72rem; color:#8fa9c2;">${cause.charity.note}</div>
+          </div>
+          <a href="${cause.charity.url}" target="_blank" rel="noopener" class="btn btn-primary btn-sm" style="white-space:nowrap;">Donate \u2197</a>
+        </div>
       </div>`;
   }
 
