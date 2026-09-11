@@ -68,7 +68,6 @@ img,svg{display:block;max-width:100%;}
   padding:14px 28px;
   background:rgba(15,11,22,0.82);
   backdrop-filter:blur(14px);
-  border-bottom:1px solid var(--border);
 }
 .brand{display:flex;align-items:center;gap:10px;font-family:'Unbounded',sans-serif;font-weight:800;font-size:1.35rem;letter-spacing:-0.5px;}
 .brand-mark{width:36px;height:36px;border-radius:12px;background:linear-gradient(135deg,#f5d56a 0%,#f39b5b 35%,#0d2a45 100%);display:flex;align-items:center;justify-content:center;font-size:1.1rem;transform:rotate(-8deg);box-shadow:var(--shadow-glow);color:#0b1f35;border:1px solid rgba(255,255,255,0.24);}
@@ -702,24 +701,24 @@ footer{text-align:center;padding:50px 20px 20px;color:var(--text-dimmer);font-si
         <p class="mini-note">this is a test version. if you're an experienced sewer and want to add notes, qualms, or critique, we've left a place for that and my dms are open too. i'll add the links soon.</p>
       </div>
       <div class="hero-visual">
-        <div class="float-card fc1"><span class="pill pill-pink">Y2K</span><b>🧵 Baggy Cargos</b></div>
-        <div class="float-card fc2"><span class="pill pill-purple">Coquette</span><b>🎀 Corset Top</b></div>
-        <div class="float-card fc3"><span class="pill pill-lime">Clubcore</span><b>💿 Bubble Skirt</b></div>
+        <div class="float-card fc1"><span class="pill pill-lime">Start here</span><b>🧍 Build Your Avatar</b></div>
+        <div class="float-card fc2"><span class="pill pill-purple">Follow along</span><b>📐 Step-by-step guide</b></div>
+        <div class="float-card fc3"><span class="pill pill-pink">Explore</span><b>✨ Pick your aesthetic</b></div>
       </div>
     </div>
 
     <div class="stats-row">
-      <div class="stat"><b>120+</b><span>trend-tagged patterns</span></div>
+      <div class="stat"><b id="liveCount">1</b><span>pattern live right now</span></div>
       <div class="stat"><b>Step-by-step</b><span>animated seam guides</span></div>
-      <div class="stat"><b>Your fit</b><span>sliders adjust every pattern</span></div>
+      <div class="stat"><b>Build Your Avatar</b><span>enter your measurements once</span></div>
     </div>
 
     <div class="section-head">
-      <div><h2>How it works</h2><p>From scroll to sewn in three steps.</p></div>
+      <div><h2>How it works</h2><p>Where things actually stand right now — no filters or fancy sorting yet, just this.</p></div>
     </div>
     <div class="how-grid">
-      <div class="how-card"><div class="how-num">1</div><h3>Find a pattern that matches your aesthetic</h3><p>Filter by trend, difficulty, or garment type instead of digging through a pattern catalog PDF.</p></div>
-      <div class="how-card"><div class="how-num">2</div><h3>Dial in your fit</h3><p>Drag sliders for your measurements and watch the silhouette and fabric yardage update live.</p></div>
+      <div class="how-card"><div class="how-num">1</div><h3>Browse the (small, growing) list</h3><p>Right now there's one finished pattern and one on the way. No filters yet — just an honest, short list of what's actually done.</p></div>
+      <div class="how-card"><div class="how-num">2</div><h3>Build your avatar once</h3><p>Enter your measurements down in Build Your Avatar, and it's there for every pattern you open — no re-measuring each time.</p></div>
       <div class="how-card"><div class="how-num">3</div><h3>Follow animated, checkable steps</h3><p>Every step has a mini seam diagram so you always know exactly where the needle goes next.</p></div>
     </div>
   </section>
@@ -742,40 +741,17 @@ footer{text-align:center;padding:50px 20px 20px;color:var(--text-dimmer);font-si
   <!-- ===================== CREATE ===================== -->
   <section class="view" id="view-create">
     <div class="browse-head">
-      <h1>Create a pattern</h1>
-      <p>Sketch out your idea, add a few steps, and publish it for others to sew.</p>
+      <h1>Leave feedback</h1>
+      <p>This is a no-judgment space — tell us where you got stuck, confused, or frustrated. Every bit of honesty helps us make this better for the next person.</p>
     </div>
-    <div class="create-wrap">
-      <div>
-        <div class="form-card">
-          <h2>1. The basics</h2>
-          <div class="field"><label>Pattern name</label><input type="text" id="cName" placeholder="e.g. Butterfly Sleeve Blouse"></div>
-          <div class="field"><label>Trend tag</label>
-            <div class="chip-select" id="cTrendChips"></div>
-          </div>
-          <div class="field"><label>Difficulty</label>
-            <div class="chip-select" id="cDiffChips"></div>
-          </div>
-          <div class="field"><label>Cover emoji</label>
-            <div class="chip-select" id="cEmojiChips"></div>
-          </div>
-          <div class="field"><label>Fabric suggestion</label><input type="text" id="cFabric" placeholder="e.g. Lightweight cotton poplin"></div>
-          <div class="field"><label>Base yardage (meters, size M)</label><input type="number" id="cYardage" value="2" step="0.1" min="0.5"></div>
-        </div>
+    <div class="request-container">
+      <div class="request-form-card">
+        <h2>How would you describe yourself?</h2>
+        <div class="chip-select" id="fbLevelChips" style="margin-bottom:22px;"></div>
 
-        <div class="form-card">
-          <h2>2. Steps</h2>
-          <div id="stepBuilderList"></div>
-          <button class="btn btn-ghost btn-sm" onclick="addStepRow()">+ Add step</button>
-        </div>
-
-        <button class="btn btn-primary" onclick="publishPattern()">🚀 Publish pattern</button>
-      </div>
-
-      <div class="sidebar-card">
-        <h3>Live preview</h3>
-        <div id="createPreview"></div>
-        <p class="preview-note">This is roughly how your pattern card will look in Discover.</p>
+        <div class="field"><label>Where did you have the most trouble?</label><textarea id="fbTrouble" placeholder="A confusing step, a measurement that didn't add up, a term you didn't recognize, the site being glitchy — anything at all, big or small."></textarea></div>
+        <div class="field"><label>What would have made it better?</label><textarea id="fbBetter" placeholder="More pictures? Simpler wording? A different order of steps? We genuinely want to know."></textarea></div>
+        <button onclick="submitFeedback()" class="btn-primary" style="margin-top:1rem;">Send feedback</button>
       </div>
     </div>
   </section>
@@ -822,15 +798,12 @@ const state = {
   progress: {},                // { patternId: Set(stepIndex) }
   activeTrend: 'All',
   activeDifficulty: 'All',
-  createSteps: [],
-  createTrend: null,
-  createDiff: 'Beginner',
-  createEmoji: '🧵',
+  feedbackLevel: null,
   requests: [],                // pattern requests forum
   miniJellyShownFor: {}        // { patternId: true } once its assembly-guide mini-Jelly has auto-popped
 };
 
-const EMOJI_CHOICES = ['🧵','🧶','✂️','🎀','👖','👗','🩳','🧥','👚','💿'];
+const FEEDBACK_LEVELS = ['Noob', 'Avid pattern user', 'Pattern maker'];
 const TRENDS = ['Y2K Streetwear','Coquette','Clubcore','Cottagecore','Grunge Upcycle','Balletcore','Clean Girl'];
 const DIFFICULTIES = ['Beginner','Intermediate','Advanced'];
 const TREND_COLOR = {
@@ -1115,7 +1088,7 @@ function render(){
   if(state.view==='home') renderHome();
   if(state.view==='browse') renderBrowse();
   if(state.view==='detail') renderDetail();
-  if(state.view==='create') renderCreate();
+  if(state.view==='create') renderFeedbackView();
   if(state.view==='request') renderRequest();
   if(state.view==='mypatterns') renderMyPatterns();
 }
@@ -1131,7 +1104,8 @@ function toast(msg){
    HOME
    ============================================================ */
 function renderHome(){
-  // Browse by vibe section removed
+  const el = document.getElementById('liveCount');
+  if(el) el.textContent = PATTERNS.filter(p=>!p.comingSoon).length;
 }
 
 function filterAndBrowse(trend){
@@ -1305,99 +1279,27 @@ function resetProgress(patternId){
 /* ============================================================
    CREATE
    ============================================================ */
-function renderCreate(){
-  document.getElementById('cTrendChips').innerHTML = TRENDS.map(t=>
-    `<button type="button" class="chip ${state.createTrend===t?'active':''}" onclick="setCreateTrend('${t}')">${t}</button>`).join('');
-  document.getElementById('cDiffChips').innerHTML = DIFFICULTIES.map(d=>
-    `<button type="button" class="chip ${state.createDiff===d?'active':''}" onclick="setCreateDiff('${d}')">${d}</button>`).join('');
-  document.getElementById('cEmojiChips').innerHTML = EMOJI_CHOICES.map(e=>
-    `<button type="button" class="chip ${state.createEmoji===e?'active':''}" style="font-size:1.1rem" onclick="setCreateEmoji('${e}')">${e}</button>`).join('');
-
-  if(state.createSteps.length===0) addStepRow(false);
-  renderStepBuilder();
-  renderCreatePreview();
+function renderFeedbackView(){
+  const wrap = document.getElementById('fbLevelChips');
+  wrap.innerHTML = FEEDBACK_LEVELS.map(l=>
+    `<button type="button" class="chip ${state.feedbackLevel===l?'active':''}" onclick="setFeedbackLevel('${l}')">${l}</button>`).join('');
 }
 
-function setCreateTrend(t){ state.createTrend=t; renderCreate(); }
-function setCreateDiff(d){ state.createDiff=d; renderCreate(); }
-function setCreateEmoji(e){ state.createEmoji=e; renderCreate(); }
+function setFeedbackLevel(l){ state.feedbackLevel=l; renderFeedbackView(); }
 
-function addStepRow(doRender=true){
-  state.createSteps.push({title:'',text:'',diagram:'seam'});
-  if(doRender) renderStepBuilder();
-}
-function removeStepRow(i){
-  state.createSteps.splice(i,1);
-  renderStepBuilder();
-  renderCreatePreview();
-}
-function updateStepField(i,field,value){
-  state.createSteps[i][field]=value;
-  renderCreatePreview();
-}
+function submitFeedback(){
+  const trouble = document.getElementById('fbTrouble').value.trim();
+  const better = document.getElementById('fbBetter').value.trim();
 
-function renderStepBuilder(){
-  const wrap = document.getElementById('stepBuilderList');
-  wrap.innerHTML = state.createSteps.map((s,i)=>`
-    <div class="step-builder-row">
-      <a class="remove-step" href="#" onclick="removeStepRow(${i});return false;">✕ remove</a>
-      <div class="field"><label>Step ${i+1} title</label><input type="text" value="${s.title.replace(/"/g,'&quot;')}" oninput="updateStepField(${i},'title',this.value)" placeholder="e.g. Sew the side seams"></div>
-      <div class="field"><label>Instructions</label><textarea oninput="updateStepField(${i},'text',this.value)" placeholder="Describe exactly what to do...">${s.text}</textarea></div>
-      <div class="field"><label>Diagram type</label>
-        <select onchange="updateStepField(${i},'diagram',this.value)">
-          ${['seam','fold','pin','gather','attach','hem','notch'].map(d=>`<option value="${d}" ${s.diagram===d?'selected':''}>${d}</option>`).join('')}
-        </select>
-      </div>
-    </div>`).join('');
-}
+  if(!state.feedbackLevel){ toast('Let us know your experience level first 🙂'); return; }
+  if(!trouble && !better){ toast('Share at least one thought before sending'); return; }
 
-function renderCreatePreview(){
-  const name = document.getElementById('cName') ? document.getElementById('cName').value : '';
-  const preview = document.getElementById('createPreview');
-  const trend = state.createTrend || 'Y2K Streetwear';
-  const diff = state.createDiff;
-  preview.innerHTML = `
-    <div class="pattern-card" style="cursor:default">
-      <div class="pattern-thumb" style="background:${thumbGradient(TREND_COLOR[trend])}">${state.createEmoji}</div>
-      <div class="pattern-body">
-        <h3>${name || 'Your pattern name'}</h3>
-        <div class="pattern-meta">
-          <span class="pill pill-${TREND_COLOR[trend]}">${trend}</span>
-          <span class="pill pill-${DIFF_COLOR[diff]}">${diff}</span>
-        </div>
-        <div class="pattern-foot"><span>${state.createSteps.length} steps</span><span>draft</span></div>
-      </div>
-    </div>`;
-}
+  document.getElementById('fbTrouble').value = '';
+  document.getElementById('fbBetter').value = '';
+  state.feedbackLevel = null;
+  renderFeedbackView();
 
-function publishPattern(){
-  const name = document.getElementById('cName').value.trim();
-  const fabric = document.getElementById('cFabric').value.trim() || 'Fabric of your choice';
-  const yardageBase = Number(document.getElementById('cYardage').value) || 2;
-  if(!name){ toast('Give your pattern a name first ✏️'); return; }
-  if(!state.createTrend){ toast('Pick a trend tag 🏷️'); return; }
-  const validSteps = state.createSteps.filter(s=>s.title.trim());
-  if(validSteps.length===0){ toast('Add at least one step 🧵'); return; }
-
-  const id = 'user-'+Date.now();
-  PATTERNS.unshift({
-    id, name, trend:state.createTrend, difficulty:state.createDiff,
-    time:'—', fabric, emoji:state.createEmoji, yardageBase,
-    base:{waist:70,hip:95,length:60},
-    steps: validSteps.map(s=>({title:s.title, text:s.text||'No additional detail added.', diagram:s.diagram}))
-  });
-
-  // reset creator form
-  state.createSteps = [];
-  state.createTrend = null;
-  state.createDiff = 'Beginner';
-  state.createEmoji = '🧵';
-  document.getElementById('cName').value='';
-  document.getElementById('cFabric').value='';
-  document.getElementById('cYardage').value=2;
-
-  toast('Pattern published! 🎉');
-  navigate('detail', id);
+  toast('💛 Thank you for being honest with us.');
 }
 
 /* ============================================================
@@ -1797,7 +1699,7 @@ navigate('home');
     'view-home': "Let's make your avatar! ✨ Scroll down to Build Your Avatar and enter your measurements. Measure height barefoot, chest around the fullest part, waist at your natural waistline, and hip at the widest point for the best fit.",
     'view-browse': "Looking for a pattern? Filter by trend or difficulty up top to find your vibe faster!",
     'view-detail': "Tap 📐 Construction to see this pattern's actual pieces — front, back, seam allowances and all. Heads up: the printed pages only show half the piece! Fold your fabric in half first, line up the pattern's fold edge with your fabric's fold, then cut through both layers at once to get a full front or back piece.",
-    'view-create': "Building your own pattern? Clear, simple steps help other sewers follow along easily.",
+    'view-create': "Be honest with us here — there's no wrong answer, and every bit of feedback helps us make this easier for the next person.",
     'view-request': "The more detail you give (inspo pics, silhouette, fit notes), the better chance we bring it to life!",
     'view-mypatterns': "This is your stash! Come back anytime to pick up right where you left off."
   };
