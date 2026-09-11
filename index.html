@@ -380,8 +380,8 @@ footer{text-align:center;padding:50px 20px 20px;color:var(--text-dimmer);font-si
 </div>
 </nav>
 
-<div id="profileModal" style="display:none; position:fixed; inset:0; background:rgba(16,45,68,0.55); z-index:999; align-items:center; justify-content:center;">
-  <div style="background:#faf8f4; border-radius:16px; padding:28px; max-width:380px; width:90%; position:relative; font-family:sans-serif; color:#102d44;">
+<div id="profileModal" style="display:none; position:fixed; inset:0; background:rgba(16,45,68,0.55); z-index:999; align-items:center; justify-content:center; padding:20px;">
+  <div id="profileModalCard" style="background:#faf8f4; border-radius:16px; padding:28px; max-width:520px; width:95%; max-height:88vh; overflow-y:auto; position:relative; font-family:sans-serif; color:#102d44;">
     <button id="closeProfileModal" style="position:absolute; top:12px; right:14px; background:none; border:none; font-size:20px; cursor:pointer; color:#102d44;">&times;</button>
     <h3 style="margin-top:0;">Your Profile</h3>
     <p style="font-size:13px; color:#38506c; margin-bottom:16px;">Accounts, saved history, likes and comments are coming soon.</p>
@@ -651,12 +651,37 @@ footer{text-align:center;padding:50px 20px 20px;color:var(--text-dimmer);font-si
 <script>
   const profileBtn = document.getElementById('profileIconBtn');
   const profileModal = document.getElementById('profileModal');
+  const profileModalCard = document.getElementById('profileModalCard');
   const closeProfileModal = document.getElementById('closeProfileModal');
   const profileSummary = document.getElementById('profileSummary');
 
+  let avatarBuilderMoved = false;
+  let avatarViewerStarted = false;
+
   profileBtn?.addEventListener('click', () => {
-    profileSummary.innerHTML = '<p style="color:#58718a;">Nothing here yet — check back soon!</p>';
+    profileSummary.innerHTML = '<p style="color:#58718a;">Manage your measurements below — they\'re used for fit estimates on every pattern.</p>';
+
+    if (!avatarBuilderMoved) {
+      avatarBuilderMoved = true;
+      const bodyView = document.getElementById('body-view');
+      const bdForm = document.getElementById('bd-form');
+      if (bodyView) profileModalCard.appendChild(bodyView);
+      if (bdForm) profileModalCard.appendChild(bdForm);
+    }
+
     profileModal.style.display = 'flex';
+
+    if (!avatarViewerStarted) {
+      avatarViewerStarted = true;
+      // Wait a frame so the modal is actually laid out (real width/height)
+      // before the WebGL viewer tries to measure the space it mounts into —
+      // mounting into a still-hidden container is what broke this last time.
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          window.initBodyDoubleViewer && window.initBodyDoubleViewer();
+        });
+      });
+    }
   });
 
   closeProfileModal?.addEventListener('click', () => {
@@ -718,7 +743,7 @@ footer{text-align:center;padding:50px 20px 20px;color:var(--text-dimmer);font-si
     </div>
     <div class="how-grid">
       <div class="how-card"><div class="how-num">1</div><h3>Browse the (small, growing) list</h3><p>Right now there's one finished pattern and one on the way. No filters yet — just an honest, short list of what's actually done.</p></div>
-      <div class="how-card"><div class="how-num">2</div><h3>Build your avatar once</h3><p>Enter your measurements down in Build Your Avatar, and it's there for every pattern you open — no re-measuring each time.</p></div>
+      <div class="how-card"><div class="how-num">2</div><h3>Build your avatar once</h3><p>Open your profile (top right) to enter your measurements, and it's there for every pattern you open — no re-measuring each time.</p></div>
       <div class="how-card"><div class="how-num">3</div><h3>Follow animated, checkable steps</h3><p>Every step has a mini seam diagram so you always know exactly where the needle goes next.</p></div>
     </div>
   </section>
@@ -1238,7 +1263,7 @@ function renderDetail(){
             Try ${waistDiff>=0?'adding':'removing'} about ${Math.abs(waistDiff/4).toFixed(1)}cm at the waist and ${hipDiff>=0?'adding':'removing'} about ${Math.abs(hipDiff/4).toFixed(1)}cm at the hip, on each side seam, tapering between the two.
           </p>` : `
           <p style="font-size:0.82rem;color:var(--text-dimmer);margin-top:10px;">
-            Enter your measurements in Build Your Avatar on the homepage to see a personalized estimate and fit adjustment tips here.
+            Enter your measurements in your Profile (top right) to see a personalized estimate and fit adjustment tips here.
           </p>`}
         </div>
         ${p.pieces && p.pieces.length ? assemblyGuideHtml(p) : ''}
@@ -1513,55 +1538,61 @@ navigate('home');
   currentUnit = document.getElementById('bd-unit').value;
   updateUnitLabels();
 
-  try {
-    viewer = mount({
-      target: '#body-view',
-      siteKey: "bd_site_2g3wFctQ5NH03P1zEw05IME9dNlWYPIi"
-    });
-    await viewer.ready;
-
+  // Mounting a WebGL viewer into a hidden/zero-size container is what
+  // broke this the last time it lived inside a modal, so this no longer
+  // runs at page load — it's only called once the profile modal (which
+  // now holds body-view) has actually been made visible and laid out.
+  window.initBodyDoubleViewer = async function initBodyDoubleViewer(){
     try {
-      await viewer.setAppearance({ preset: 'light' });
-    } catch (appearanceErr) {
-      console.warn('Could not set appearance:', appearanceErr);
-    }
+      viewer = mount({
+        target: '#body-view',
+        siteKey: "bd_site_2g3wFctQ5NH03P1zEw05IME9dNlWYPIi"
+      });
+      await viewer.ready;
 
-    // Subscribe before the first setProfile call, per SeamScape's docs.
-    viewer.on('profile', profile => {
-      console.log('BodyDouble profile update:', profile.fields);
-    });
-    // Only these mean the viewer itself is broken. Everything else (like a
-    // single field being out of range while someone's still typing) is a
-    // normal, recoverable per-update error and shouldn't kill the viewer.
-    const FATAL_ERROR_CODES = new Set([
-      'INIT_TIMEOUT',
-      'VERSION_MISMATCH',
-      'WEBGL_UNAVAILABLE',
-      'WEBGL_CONTEXT_LOST',
-      'MODEL_LOAD_FAILED',
-      'VIEWER_ERROR',
-      'DESTROYED'
-    ]);
-
-    viewer.on('error', err => {
-      console.error('BodyDouble runtime error:', err);
-      if (FATAL_ERROR_CODES.has(err?.code)) {
-        document.querySelector('#body-view').textContent =
-          '3D preview ran into a problem. You can continue entering measurements.';
+      try {
+        await viewer.setAppearance({ preset: 'light' });
+      } catch (appearanceErr) {
+        console.warn('Could not set appearance:', appearanceErr);
       }
-    });
 
-    document.getElementById('bd-gender').addEventListener('change', scheduleUpdate);
-    document.getElementById('bd-height').addEventListener('input', scheduleUpdate);
-    document.getElementById('bd-weight').addEventListener('input', scheduleUpdate);
-    lengthFieldIds.forEach(id => {
-      watchField('bd-' + id, id);
-    });
-  } catch (error) {
-    viewer?.destroy();
-    document.querySelector('#body-view').textContent =
-      '3D preview unavailable. You can continue entering measurements.';
-  }
+      // Subscribe before the first setProfile call, per SeamScape's docs.
+      viewer.on('profile', profile => {
+        console.log('BodyDouble profile update:', profile.fields);
+      });
+      // Only these mean the viewer itself is broken. Everything else (like a
+      // single field being out of range while someone's still typing) is a
+      // normal, recoverable per-update error and shouldn't kill the viewer.
+      const FATAL_ERROR_CODES = new Set([
+        'INIT_TIMEOUT',
+        'VERSION_MISMATCH',
+        'WEBGL_UNAVAILABLE',
+        'WEBGL_CONTEXT_LOST',
+        'MODEL_LOAD_FAILED',
+        'VIEWER_ERROR',
+        'DESTROYED'
+      ]);
+
+      viewer.on('error', err => {
+        console.error('BodyDouble runtime error:', err);
+        if (FATAL_ERROR_CODES.has(err?.code)) {
+          document.querySelector('#body-view').textContent =
+            '3D preview ran into a problem. You can continue entering measurements.';
+        }
+      });
+
+      document.getElementById('bd-gender').addEventListener('change', scheduleUpdate);
+      document.getElementById('bd-height').addEventListener('input', scheduleUpdate);
+      document.getElementById('bd-weight').addEventListener('input', scheduleUpdate);
+      lengthFieldIds.forEach(id => {
+        watchField('bd-' + id, id);
+      });
+    } catch (error) {
+      viewer?.destroy();
+      document.querySelector('#body-view').textContent =
+        '3D preview unavailable. You can continue entering measurements.';
+    }
+  };
 </script>
 
 <!-- ===================== JELLYFISH HELPER ===================== -->
@@ -1696,7 +1727,7 @@ navigate('home');
 <script>
 (function(){
   const TIPS = {
-    'view-home': "Let's make your avatar! ✨ Scroll down to Build Your Avatar and enter your measurements. Measure height barefoot, chest around the fullest part, waist at your natural waistline, and hip at the widest point for the best fit.",
+    'view-home': "Let's make your avatar! ✨ Click your profile icon (top right) to enter your measurements. Measure height barefoot, chest around the fullest part, waist at your natural waistline, and hip at the widest point for the best fit.",
     'view-browse': "Looking for a pattern? Filter by trend or difficulty up top to find your vibe faster!",
     'view-detail': "Tap 📐 Construction to see this pattern's actual pieces — front, back, seam allowances and all. Heads up: the printed pages only show half the piece! Fold your fabric in half first, line up the pattern's fold edge with your fabric's fold, then cut through both layers at once to get a full front or back piece.",
     'view-create': "Be honest with us here — there's no wrong answer, and every bit of feedback helps us make this easier for the next person.",
