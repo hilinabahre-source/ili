@@ -575,6 +575,11 @@ footer{text-align:center;padding:50px 20px 20px;color:var(--text-dimmer);font-si
         name: 'UNHCR \u2014 Sudan Emergency',
         note: '4-star Charity Navigator rating',
         url: 'https://donate.unhcr.org/int/en/sudan-emergency'
+      },
+      campaign: {
+        name: 'Keep Eyes on Sudan',
+        note: 'Named campaign fighting global media silence on the crisis',
+        url: 'https://donate.chooselove.org/campaigns/keep-eyes-on-sudan/'
       }
     },
     {
@@ -589,6 +594,11 @@ footer{text-align:center;padding:50px 20px 20px;color:var(--text-dimmer);font-si
         name: 'UNRWA \u2014 Gaza Emergency Appeal',
         note: 'UN agency for Palestine refugees',
         url: 'https://donate.unrwa.org/int/en/gaza'
+      },
+      campaign: {
+        name: 'Hand in Hand with Palestine Refugees',
+        note: 'UNRWA\u2019s current named giving campaign',
+        url: 'https://www.unrwa.org/newsroom/news-releases/%E2%80%9Chand-hand-palestine-refugees%E2%80%9D-unrwa%E2%80%99s-ramadan-2026-campaign'
       }
     },
     {
@@ -603,6 +613,11 @@ footer{text-align:center;padding:50px 20px 20px;color:var(--text-dimmer);font-si
         name: 'UN Women',
         note: 'Funds direct services for Afghan women and girls',
         url: 'https://donate.unwomen.org/en'
+      },
+      campaign: {
+        name: '#LetAfghanGirlsLearn',
+        note: 'Named campaign for Afghan girls\u2019 right to education',
+        url: 'https://womenforafghanwomen.org/let-afghan-girls-learn/'
       }
     },
     {
@@ -617,6 +632,11 @@ footer{text-align:center;padding:50px 20px 20px;color:var(--text-dimmer);font-si
         name: 'International Rescue Committee',
         note: '4-star Charity Navigator, 96% score',
         url: 'https://help.rescue.org/donate'
+      },
+      campaign: {
+        name: '#\u1275\u1230\u121b \u2014 Tisema (\u201cLet Her Be Heard\u201d)',
+        note: 'Advocacy campaign on violence against women & girls (petition, not a donation page)',
+        url: 'https://tisema.org/'
       }
     }
   ];
@@ -650,6 +670,14 @@ footer{text-align:center;padding:50px 20px 20px;color:var(--text-dimmer);font-si
             </div>
             <a href="${cause.charity.url}" target="_blank" rel="noopener" class="btn btn-primary btn-sm" style="white-space:nowrap; align-self:flex-start;">Donate \u2197</a>
           </div>
+          ${cause.campaign ? `
+          <div style="border-top:1px solid var(--border); padding-top:12px; margin-top:10px;">
+            <div>
+              <div style="font-size:0.85rem; color:var(--text); font-weight:600;">📣 ${cause.campaign.name}</div>
+              <div style="font-size:0.72rem; color:var(--text-dimmer); margin-bottom:8px;">${cause.campaign.note}</div>
+            </div>
+            <a href="${cause.campaign.url}" target="_blank" rel="noopener" class="btn btn-ghost btn-sm" style="white-space:nowrap;">Visit campaign \u2197</a>
+          </div>` : ''}
         </div>
       </div>`;
   }
