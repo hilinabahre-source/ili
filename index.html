@@ -157,6 +157,17 @@ main{max-width:1180px;margin:0 auto;padding:0 24px;}
 .hero p{
   color:var(--text-dim);font-size:1.08rem;line-height:1.6;margin-bottom:20px;max-width:700px;
 }
+.avatar-stitch-heading{
+  display:inline-block;
+  background-color:var(--indigo);
+  color:#faf8f4;
+  padding:8px 20px;
+  border-radius:10px;
+  margin-bottom:4px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='16'%3E%3Cline x1='2' y1='8' x2='12' y2='8' stroke='%23f3f0ea' stroke-width='2' stroke-linecap='round'/%3E%3Cline x1='7' y1='3' x2='7' y2='13' stroke='%23f4d86b' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:repeat-x;
+  background-position:center;
+}
 .mini-note{
   margin-top:18px;
   color:var(--text-dimmer);
@@ -175,7 +186,7 @@ main{max-width:1180px;margin:0 auto;padding:0 24px;}
 .emoji-lg{font-size:2.2rem;}
 
 .stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;padding:30px 0 50px;border-bottom:1px solid var(--border);margin-bottom:50px;}
-.stat b{font-family:'Unbounded';font-size:1.3rem;display:block;color:var(--yellow);}
+.stat b{font-family:'Unbounded';font-size:2rem;display:block;color:var(--yellow);}
 .stat span{color:var(--text-dim);font-size:0.88rem;}
 
 .section-head{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:26px;}
@@ -1400,7 +1411,7 @@ navigate('home');
 <div id="body-view" style="height: 520px"></div>
 
 <div id="bd-form" style="max-width: 420px; margin-top: 24px; font-family: sans-serif; display: flex; flex-direction: column; gap: 10px;">
-  <h3>Build Your Avatar</h3>
+  <h3 class="avatar-stitch-heading">Build Your Avatar</h3>
 
   <label>Gender
     <select id="bd-gender">
