@@ -642,19 +642,19 @@ footer{text-align:center;padding:50px 20px 20px;color:var(--text-dimmer);font-si
   ];
 
   const DONATION_THUMBS = [
-    { flagFile: 'Flag_of_Sudan.svg', color: 'orange' },
-    { flagFile: 'Flag_of_Palestine.svg', color: 'purple' },
-    { flagFile: 'Flag_of_Afghanistan.svg', color: 'pink' },
-    { flagFile: 'Flag_of_Ethiopia.svg', color: 'lime' }
+    { logoFile: 'UNHCR.svg', name: 'UNHCR' },
+    { logoFile: 'United_Nations_Relief_and_Works_Agency_for_Palestine_Refugees_in_the_Near_East_Logo.svg', name: 'UNRWA' },
+    { logoFile: 'UN_WOMEN_Logo.svg', name: 'UN Women' },
+    { logoFile: 'International_Rescue_Committee_Logo.svg', name: 'International Rescue Committee' }
   ];
 
   function donationCauseHtml(cause, i){
     const thumb = DONATION_THUMBS[i % DONATION_THUMBS.length];
-    const flagUrl = 'https://commons.wikimedia.org/wiki/Special:FilePath/' + thumb.flagFile;
+    const logoUrl = 'https://commons.wikimedia.org/wiki/Special:FilePath/' + thumb.logoFile;
     return `
       <div class="pattern-card" style="cursor:default;">
-        <div class="pattern-thumb" style="background:${thumbGradient(thumb.color)}">
-          <img src="${flagUrl}" alt="Flag" style="width:60%;height:60%;object-fit:contain;filter:drop-shadow(0 4px 10px rgba(0,0,0,0.25));" loading="lazy">
+        <div class="pattern-thumb" style="background:#ffffff; padding:20px;">
+          <img src="${logoUrl}" alt="${thumb.name} logo" style="width:70%;height:70%;object-fit:contain;" loading="lazy">
         </div>
         <div class="pattern-body">
           <h3>${cause.region}</h3>
