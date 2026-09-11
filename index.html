@@ -668,7 +668,10 @@ footer{text-align:center;padding:50px 20px 20px;color:var(--text-dimmer);font-si
               <div style="font-size:0.85rem; color:var(--text); font-weight:600;">${cause.charity.name}</div>
               <div style="font-size:0.72rem; color:var(--text-dimmer);">${cause.charity.note}</div>
             </div>
-            <a href="${cause.charity.url}" target="_blank" rel="noopener" class="btn btn-primary btn-sm" style="white-space:nowrap; align-self:flex-start;">Donate \u2197</a>
+            <a href="${cause.charity.url}" target="_blank" rel="noopener" style="position:relative; display:inline-flex; align-items:center; justify-content:center; width:60px; height:60px; align-self:flex-start;">
+              <img src="https://www.emoji.family/api/emojis/1f4b5/noto/svg" alt="Donate" style="width:100%;height:100%;object-fit:contain;" loading="lazy">
+              <span style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#ffffff; font-weight:800; font-size:9px; letter-spacing:0.03em; text-transform:uppercase; text-shadow:0 1px 3px rgba(0,0,0,0.6);">Donate</span>
+            </a>
           </div>
           ${cause.campaign ? `
           <div style="border-top:1px solid var(--border); padding-top:12px; margin-top:10px;">
@@ -856,7 +859,6 @@ footer{text-align:center;padding:50px 20px 20px;color:var(--text-dimmer);font-si
       </div>
       <div>
         <h1>Donation Bin</h1>
-        <p>Causes tied to the places and people behind our patterns — a place to start if you want to give beyond ili.</p>
       </div>
     </div>
     <div class="pattern-grid" id="donateGrid"></div>
