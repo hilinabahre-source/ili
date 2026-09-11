@@ -175,7 +175,7 @@ main{max-width:1180px;margin:0 auto;padding:0 24px;}
 .emoji-lg{font-size:2.2rem;}
 
 .stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;padding:30px 0 50px;border-bottom:1px solid var(--border);margin-bottom:50px;}
-.stat b{font-family:'Unbounded';font-size:2rem;display:block;background:var(--grad-lime);-webkit-background-clip:text;background-clip:text;color:transparent;}
+.stat b{font-family:'Unbounded';font-size:1.3rem;display:block;color:var(--yellow);}
 .stat span{color:var(--text-dim);font-size:0.88rem;}
 
 .section-head{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:26px;}
@@ -733,16 +733,16 @@ footer{text-align:center;padding:50px 20px 20px;color:var(--text-dimmer);font-si
     </div>
 
     <div class="stats-row">
-      <div class="stat"><b id="liveCount">1</b><span>pattern live right now</span></div>
-      <div class="stat"><b>Step-by-step</b><span>animated seam guides</span></div>
       <div class="stat"><b>Build Your Avatar</b><span>enter your measurements once</span></div>
+      <div class="stat"><b>Step-by-step</b><span>animated seam guides</span></div>
+      <div class="stat"><b>Pick Your Aesthetic</b><span>browse patterns by vibe</span></div>
     </div>
 
     <div class="section-head">
-      <div><h2>How it works</h2><p>Where things actually stand right now — no filters or fancy sorting yet, just this.</p></div>
+      <div><h2>How it works</h2></div>
     </div>
     <div class="how-grid">
-      <div class="how-card"><div class="how-num">1</div><h3>Browse the (small, growing) list</h3><p>Right now there's one finished pattern and one on the way. No filters yet — just an honest, short list of what's actually done.</p></div>
+      <div class="how-card"><div class="how-num">1</div><h3>Browse the list</h3><p>More to come — pulled straight from Pinterest finds.</p></div>
       <div class="how-card"><div class="how-num">2</div><h3>Build your avatar once</h3><p>Open your profile (top right) to enter your measurements, and it's there for every pattern you open — no re-measuring each time.</p></div>
       <div class="how-card"><div class="how-num">3</div><h3>Follow animated, checkable steps</h3><p>Every step has a mini seam diagram so you always know exactly where the needle goes next.</p></div>
     </div>
@@ -1129,8 +1129,7 @@ function toast(msg){
    HOME
    ============================================================ */
 function renderHome(){
-  const el = document.getElementById('liveCount');
-  if(el) el.textContent = PATTERNS.filter(p=>!p.comingSoon).length;
+  // Browse by vibe section removed
 }
 
 function filterAndBrowse(trend){
