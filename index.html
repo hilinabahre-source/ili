@@ -622,17 +622,20 @@ footer{text-align:center;padding:50px 20px 20px;color:var(--text-dimmer);font-si
   ];
 
   const DONATION_THUMBS = [
-    { emoji: '🇸🇩', color: 'orange' },
-    { emoji: '🇵🇸', color: 'purple' },
-    { emoji: '🇦🇫', color: 'pink' },
-    { emoji: '🇪🇹', color: 'lime' }
+    { flagFile: 'Flag_of_Sudan.svg', color: 'orange' },
+    { flagFile: 'Flag_of_Palestine.svg', color: 'purple' },
+    { flagFile: 'Flag_of_Afghanistan.svg', color: 'pink' },
+    { flagFile: 'Flag_of_Ethiopia.svg', color: 'lime' }
   ];
 
   function donationCauseHtml(cause, i){
     const thumb = DONATION_THUMBS[i % DONATION_THUMBS.length];
+    const flagUrl = 'https://commons.wikimedia.org/wiki/Special:FilePath/' + thumb.flagFile;
     return `
       <div class="pattern-card" style="cursor:default;">
-        <div class="pattern-thumb" style="background:${thumbGradient(thumb.color)}">${thumb.emoji}</div>
+        <div class="pattern-thumb" style="background:${thumbGradient(thumb.color)}">
+          <img src="${flagUrl}" alt="Flag" style="width:60%;height:60%;object-fit:contain;filter:drop-shadow(0 4px 10px rgba(0,0,0,0.25));" loading="lazy">
+        </div>
         <div class="pattern-body">
           <h3>${cause.region}</h3>
           <p style="font-size:0.85rem; color:var(--text-dim); line-height:1.5; margin-bottom:10px;">${cause.blurb}</p>
