@@ -394,7 +394,6 @@ footer{text-align:center;padding:50px 20px 20px;color:var(--text-dimmer);font-si
   <div id="profileModalCard" style="background:#faf8f4; border-radius:16px; padding:28px; max-width:520px; width:95%; max-height:88vh; overflow-y:auto; position:relative; font-family:sans-serif; color:#102d44;">
     <button id="closeProfileModal" style="position:absolute; top:12px; right:14px; background:none; border:none; font-size:20px; cursor:pointer; color:#102d44;">&times;</button>
     <h3 style="margin-top:0;">Your Profile</h3>
-    <p style="font-size:13px; color:#38506c; margin-bottom:16px;">Saved history, likes and comments are coming soon.</p>
     <div id="profileSummary" style="font-size:14px; line-height:1.6;"></div>
     <div id="authSection" style="margin:16px 0; padding:16px 0; border-top:1px solid rgba(18,49,77,0.12); border-bottom:1px solid rgba(18,49,77,0.12);"></div>
   </div>
@@ -711,7 +710,7 @@ footer{text-align:center;padding:50px 20px 20px;color:var(--text-dimmer);font-si
   let avatarViewerStarted = false;
 
   profileBtn?.addEventListener('click', () => {
-    profileSummary.innerHTML = '<p style="color:#58718a;">Manage your measurements below — they\'re used for fit estimates on every pattern.</p>';
+    profileSummary.innerHTML = '';
 
     if (!avatarBuilderMoved) {
       avatarBuilderMoved = true;
