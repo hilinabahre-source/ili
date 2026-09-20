@@ -724,6 +724,7 @@ footer{text-align:center;padding:50px 20px 20px;color:var(--text-dimmer);font-si
 
     window.renderAuthUI && window.renderAuthUI();
     window.loadSavedMeasurements && window.loadSavedMeasurements();
+    window.loadCloudPatterns && window.loadCloudPatterns();
 
     if (!avatarViewerStarted) {
       avatarViewerStarted = true;
@@ -1252,6 +1253,7 @@ function setDiffFilter(d){ state.activeDifficulty=d; renderBrowse(); }
 function toggleSave(id){
   if(state.saved.has(id)) state.saved.delete(id); else { state.saved.add(id); toast('Saved to My Patterns 💜'); }
   render();
+  syncPatternToCloud(id);
 }
 
 /* ============================================================
@@ -1362,12 +1364,65 @@ function toggleStep(patternId, index){
   if(set.has(index)) set.delete(index); else set.add(index);
   if(set.size>0) state.saved.add(patternId);
   renderDetail();
+  syncPatternToCloud(patternId);
 }
 
 function resetProgress(patternId){
   state.progress[patternId] = new Set();
   renderDetail();
+  syncPatternToCloud(patternId);
 }
+
+/* ============================================================
+   ACCOUNT SYNC — saved/hearted patterns + step progress
+   (uses window.supabaseClient, set up in the BodyDouble module script)
+   ============================================================ */
+async function syncPatternToCloud(patternId){
+  if(!window.supabaseClient || !window.iliGetCurrentUser) return;
+  const user = await window.iliGetCurrentUser();
+  if(!user) return; // no account — stays session-only, as before
+
+  const completedSteps = state.progress[patternId] ? Array.from(state.progress[patternId]) : [];
+  const { error } = await window.supabaseClient.from('user_patterns').upsert({
+    user_id: user.id,
+    pattern_id: patternId,
+    saved: state.saved.has(patternId),
+    completed_steps: completedSteps,
+    updated_at: new Date().toISOString()
+  });
+  if(error) console.error('Could not sync pattern to account:', error);
+}
+
+// Pulls every saved/in-progress pattern for the logged-in user from the
+// cloud into local state, then re-renders whatever view is on screen.
+window.loadCloudPatterns = async function loadCloudPatterns(){
+  if(!window.supabaseClient || !window.iliGetCurrentUser) return;
+  const user = await window.iliGetCurrentUser();
+  if(!user) return;
+
+  const { data, error } = await window.supabaseClient
+    .from('user_patterns')
+    .select('*')
+    .eq('user_id', user.id);
+  if(error){ console.error('Could not load cloud patterns:', error); return; }
+
+  (data || []).forEach(row => {
+    if(row.saved) state.saved.add(row.pattern_id);
+    if(row.completed_steps && row.completed_steps.length){
+      state.progress[row.pattern_id] = new Set(row.completed_steps);
+    }
+  });
+  render();
+};
+
+// Clears locally-held saved/progress state on logout, so a different
+// account signing in on the same device doesn't inherit the previous
+// person's hearts/progress.
+window.resetLocalPatternState = function resetLocalPatternState(){
+  state.saved = new Set();
+  state.progress = {};
+  render();
+};
 
 /* ============================================================
    CREATE
@@ -1613,6 +1668,17 @@ navigate('home');
     const { data } = await supabaseClient.auth.getSession();
     return data.session ? data.session.user : null;
   }
+  // Exposed so the main app script (a separate classic <script>, not this
+  // module) can sync saved/hearted patterns and step progress to the cloud.
+  window.supabaseClient = supabaseClient;
+  window.iliGetCurrentUser = getCurrentUser;
+
+  // Returning visitors who are already logged in (Supabase persists the
+  // session) get their hearted patterns and step progress pulled in
+  // automatically, without needing to open Profile first.
+  getCurrentUser().then(user => {
+    if (user) window.loadCloudPatterns && window.loadCloudPatterns();
+  });
 
   // Renders either the sign-up/log-in form or a "signed in as..." state
   // into #authSection, and wires up its buttons. Called every time the
@@ -1630,6 +1696,7 @@ navigate('home');
       document.getElementById('authLogoutBtn').addEventListener('click', async () => {
         await supabaseClient.auth.signOut();
         window.renderAuthUI();
+        window.resetLocalPatternState && window.resetLocalPatternState();
       });
       return;
     }
@@ -1655,7 +1722,7 @@ navigate('home');
     passToggle.addEventListener('click', () => {
       const showing = passEl.type === 'text';
       passEl.type = showing ? 'password' : 'text';
-      passToggle.textContent = showing ? '👁️' : '🙈';
+      passToggle.textContent = showing ? '👁️' : '🐒';
       passToggle.title = showing ? 'Show password' : 'Hide password';
     });
 
@@ -1675,6 +1742,7 @@ navigate('home');
       if (error) { msgEl.textContent = error.message; return; }
       await window.renderAuthUI();
       await window.loadSavedMeasurements();
+      await window.loadCloudPatterns();
     });
   };
 
