@@ -1583,6 +1583,16 @@ navigate('home');
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh0a3Fyc3FqaWtoeW96dHJ2aXF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk4Nzk2MzMsImV4cCI6MjEwNTQ1NTYzM30.plfdKwvUicQG_a9I3smBKpLPsRIBJWNJdnY7m4So5ws';
   const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+  // Supabase automatically logs someone in the moment they land back on the
+  // site from a "confirm your email" link — this just makes that moment
+  // visible instead of silent, and cleans the token out of the URL after.
+  supabaseClient.auth.onAuthStateChange((event, session) => {
+    if (event === 'SIGNED_IN' && window.location.hash.includes('type=signup')) {
+      if (typeof toast === 'function') toast('✅ Email confirmed — you\'re logged in!');
+      history.replaceState(null, '', window.location.pathname + window.location.search);
+    }
+  });
+
   // Maps this form's camelCase field ids to the measurements table's
   // snake_case column names (see setup-measurements-table.sql).
   const FIELD_TO_COLUMN = {
@@ -1627,7 +1637,10 @@ navigate('home');
     wrap.innerHTML = `
       <p style="font-size:13px;color:#38506c;margin-bottom:10px;">Create an account so your measurements follow you across devices — optional, the form below still works without one.</p>
       <input id="authEmail" type="email" placeholder="Email" style="width:100%;padding:8px 10px;margin-bottom:6px;border-radius:8px;border:1px solid #ccc;box-sizing:border-box;">
-      <input id="authPassword" type="password" placeholder="Password" style="width:100%;padding:8px 10px;margin-bottom:8px;border-radius:8px;border:1px solid #ccc;box-sizing:border-box;">
+      <div style="position:relative; margin-bottom:8px;">
+        <input id="authPassword" type="password" placeholder="Password" style="width:100%;padding:8px 38px 8px 10px;border-radius:8px;border:1px solid #ccc;box-sizing:border-box;">
+        <button id="authPasswordToggle" type="button" title="Show password" style="position:absolute; right:6px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; font-size:15px; padding:4px; line-height:1;">👁️</button>
+      </div>
       <div style="display:flex;gap:8px;">
         <button id="authSignupBtn" type="button" style="flex:1;font-size:12px;padding:8px;border-radius:8px;background:var(--indigo);color:#fff;border:none;cursor:pointer;">Sign up</button>
         <button id="authLoginBtn" type="button" style="flex:1;font-size:12px;padding:8px;border-radius:8px;background:#eee;border:none;cursor:pointer;">Log in</button>
@@ -1637,6 +1650,14 @@ navigate('home');
     const emailEl = document.getElementById('authEmail');
     const passEl = document.getElementById('authPassword');
     const msgEl = document.getElementById('authMsg');
+    const passToggle = document.getElementById('authPasswordToggle');
+
+    passToggle.addEventListener('click', () => {
+      const showing = passEl.type === 'text';
+      passEl.type = showing ? 'password' : 'text';
+      passToggle.textContent = showing ? '👁️' : '🙈';
+      passToggle.title = showing ? 'Show password' : 'Hide password';
+    });
 
     document.getElementById('authSignupBtn').addEventListener('click', async () => {
       msgEl.style.color = '#c0392b';
