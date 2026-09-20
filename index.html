@@ -394,8 +394,9 @@ footer{text-align:center;padding:50px 20px 20px;color:var(--text-dimmer);font-si
   <div id="profileModalCard" style="background:#faf8f4; border-radius:16px; padding:28px; max-width:520px; width:95%; max-height:88vh; overflow-y:auto; position:relative; font-family:sans-serif; color:#102d44;">
     <button id="closeProfileModal" style="position:absolute; top:12px; right:14px; background:none; border:none; font-size:20px; cursor:pointer; color:#102d44;">&times;</button>
     <h3 style="margin-top:0;">Your Profile</h3>
-    <p style="font-size:13px; color:#38506c; margin-bottom:16px;">Accounts, saved history, likes and comments are coming soon.</p>
+    <p style="font-size:13px; color:#38506c; margin-bottom:16px;">Saved history, likes and comments are coming soon.</p>
     <div id="profileSummary" style="font-size:14px; line-height:1.6;"></div>
+    <div id="authSection" style="margin:16px 0; padding:16px 0; border-top:1px solid rgba(18,49,77,0.12); border-bottom:1px solid rgba(18,49,77,0.12);"></div>
   </div>
 </div>
 
@@ -721,6 +722,9 @@ footer{text-align:center;padding:50px 20px 20px;color:var(--text-dimmer);font-si
     }
 
     profileModal.style.display = 'flex';
+
+    window.renderAuthUI && window.renderAuthUI();
+    window.loadSavedMeasurements && window.loadSavedMeasurements();
 
     if (!avatarViewerStarted) {
       avatarViewerStarted = true;
@@ -1499,6 +1503,7 @@ navigate('home');
   <button id="bd-save" type="button" class="avatar-stitch-heading" style="cursor:pointer; border:none; align-self:flex-end; font-weight:700; font-size:0.85rem; margin-top:14px;">Save</button>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script type="module">
   import { mount } from "https://embed.bodydbl.com/1.0.2/viewer.js";
 
@@ -1574,10 +1579,114 @@ navigate('home');
   // customer's real entered measurements, always converted to cm/kg.
   window.getCustomerBodyMeasurements = collectProfile;
 
-  // Restore any previously saved measurements so a returning visitor
-  // doesn't have to retype everything. Stored values are always metric
-  // (collectProfile's own format), matching the form's default unit.
-  (function restoreSavedMeasurements(){
+  // ---- Real accounts, via Supabase ----
+  const SUPABASE_URL = 'https://htkqrsqjikhyoztrviqw.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh0a3Fyc3FqaWtoeW96dHJ2aXF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk4Nzk2MzMsImV4cCI6MjEwNTQ1NTYzM30.plfdKwvUicQG_a9I3smBKpLPsRIBJWNJdnY7m4So5ws';
+  const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  // Maps this form's camelCase field ids to the measurements table's
+  // snake_case column names (see setup-measurements-table.sql).
+  const FIELD_TO_COLUMN = {
+    shoulderWidth: 'shoulder_width',
+    neckToWaistBack: 'neck_to_waist_back',
+    neckToWaistFront: 'neck_to_waist_front',
+    chestGirth: 'chest_girth',
+    underbustGirth: 'underbust_girth',
+    armLength: 'arm_length',
+    bicepGirth: 'bicep_girth',
+    waistGirth: 'waist_girth',
+    hipGirth: 'hip_girth',
+    thighGirth: 'thigh_girth',
+    crotchHeight: 'crotch_height'
+  };
+
+  async function getCurrentUser(){
+    const { data } = await supabaseClient.auth.getSession();
+    return data.session ? data.session.user : null;
+  }
+
+  // Renders either the sign-up/log-in form or a "signed in as..." state
+  // into #authSection, and wires up its buttons. Called every time the
+  // profile modal opens, since login state can change between visits.
+  window.renderAuthUI = async function renderAuthUI(){
+    const wrap = document.getElementById('authSection');
+    if (!wrap) return;
+    const user = await getCurrentUser();
+
+    if (user) {
+      wrap.innerHTML = `
+        <p style="font-size:13px;color:#38506c;margin-bottom:10px;">Signed in as <b>${user.email}</b> — your measurements sync across devices.</p>
+        <button id="authLogoutBtn" type="button" style="font-size:12px;padding:7px 14px;border-radius:8px;background:#eee;border:none;cursor:pointer;">Log out</button>
+      `;
+      document.getElementById('authLogoutBtn').addEventListener('click', async () => {
+        await supabaseClient.auth.signOut();
+        window.renderAuthUI();
+      });
+      return;
+    }
+
+    wrap.innerHTML = `
+      <p style="font-size:13px;color:#38506c;margin-bottom:10px;">Create an account so your measurements follow you across devices — optional, the form below still works without one.</p>
+      <input id="authEmail" type="email" placeholder="Email" style="width:100%;padding:8px 10px;margin-bottom:6px;border-radius:8px;border:1px solid #ccc;box-sizing:border-box;">
+      <input id="authPassword" type="password" placeholder="Password" style="width:100%;padding:8px 10px;margin-bottom:8px;border-radius:8px;border:1px solid #ccc;box-sizing:border-box;">
+      <div style="display:flex;gap:8px;">
+        <button id="authSignupBtn" type="button" style="flex:1;font-size:12px;padding:8px;border-radius:8px;background:var(--indigo);color:#fff;border:none;cursor:pointer;">Sign up</button>
+        <button id="authLoginBtn" type="button" style="flex:1;font-size:12px;padding:8px;border-radius:8px;background:#eee;border:none;cursor:pointer;">Log in</button>
+      </div>
+      <p id="authMsg" style="font-size:12px;margin-top:8px;"></p>
+    `;
+    const emailEl = document.getElementById('authEmail');
+    const passEl = document.getElementById('authPassword');
+    const msgEl = document.getElementById('authMsg');
+
+    document.getElementById('authSignupBtn').addEventListener('click', async () => {
+      msgEl.style.color = '#c0392b';
+      msgEl.textContent = '';
+      const { error } = await supabaseClient.auth.signUp({ email: emailEl.value, password: passEl.value });
+      if (error) { msgEl.textContent = error.message; return; }
+      msgEl.style.color = '#2e7d32';
+      msgEl.textContent = 'Check your email to confirm your account, then log in.';
+    });
+
+    document.getElementById('authLoginBtn').addEventListener('click', async () => {
+      msgEl.style.color = '#c0392b';
+      msgEl.textContent = '';
+      const { error } = await supabaseClient.auth.signInWithPassword({ email: emailEl.value, password: passEl.value });
+      if (error) { msgEl.textContent = error.message; return; }
+      await window.renderAuthUI();
+      await window.loadSavedMeasurements();
+    });
+  };
+
+  // Loads measurements into the form: from the cloud if signed in and a
+  // saved row exists, otherwise falls back to this browser's localStorage
+  // (for people without an account, or before their first cloud save).
+  window.loadSavedMeasurements = async function loadSavedMeasurements(){
+    const user = await getCurrentUser();
+
+    if (user) {
+      try {
+        const { data } = await supabaseClient
+          .from('measurements')
+          .select('*')
+          .eq('user_id', user.id)
+          .maybeSingle();
+        if (data) {
+          if (data.gender) document.getElementById('bd-gender').value = data.gender;
+          if (data.height != null) document.getElementById('bd-height').value = data.height;
+          if (data.weight != null) document.getElementById('bd-weight').value = data.weight;
+          lengthFieldIds.forEach(id => {
+            const col = FIELD_TO_COLUMN[id];
+            if (data[col] != null) document.getElementById('bd-' + id).value = data[col];
+          });
+          return;
+        }
+      } catch (e) {
+        console.warn('Could not load cloud measurements:', e);
+      }
+    }
+
+    // No account, or no cloud row saved yet — fall back to this device only.
     try {
       const saved = localStorage.getItem('ili_measurements');
       if (!saved) return;
@@ -1593,26 +1702,46 @@ navigate('home');
     } catch (e) {
       console.warn('Could not restore saved measurements:', e);
     }
-  })();
+  };
 
-  // Save button: persists the current form values, then closes the
-  // profile modal so whatever page was underneath (home, a pattern, etc.)
-  // is visible again, same as clicking the X or clicking outside it.
-  document.getElementById('bd-save')?.addEventListener('click', () => {
+  // Save button: persists the current form values (to the cloud if signed
+  // in, always to localStorage as a same-device backup too), then closes
+  // the profile modal so whatever page was underneath is visible again.
+  document.getElementById('bd-save')?.addEventListener('click', async () => {
+    const profile = collectProfile();
+
     try {
-      localStorage.setItem('ili_measurements', JSON.stringify(collectProfile()));
+      localStorage.setItem('ili_measurements', JSON.stringify(profile));
     } catch (e) {
-      console.warn('Could not save measurements:', e);
+      console.warn('Could not save measurements locally:', e);
     }
+
+    const user = await getCurrentUser();
+    if (user) {
+      const row = { user_id: user.id };
+      if (profile.gender) row.gender = profile.gender;
+      if (profile.fields.height != null) row.height = profile.fields.height;
+      if (profile.fields.weight != null) row.weight = profile.fields.weight;
+      lengthFieldIds.forEach(id => {
+        const col = FIELD_TO_COLUMN[id];
+        if (profile.fields[id] != null) row[col] = profile.fields[id];
+      });
+      const { error } = await supabaseClient.from('measurements').upsert(row);
+      if (error) console.error('Could not save to your account:', error);
+    }
+
     const modal = document.getElementById('profileModal');
     if (modal) modal.style.display = 'none';
-    if (typeof toast === 'function') toast('💾 Measurements saved!');
+    if (typeof toast === 'function') {
+      toast(user ? '💾 Saved to your account!' : '💾 Saved on this device!');
+    }
   });
 
   function scheduleUpdate() {
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(async () => {
       if (!viewer) return;
+
       try {
         await viewer.setProfile(collectProfile());
       } catch (err) {
