@@ -466,12 +466,23 @@ footer{text-align:center;padding:50px 20px 20px;color:var(--text-dimmer);font-si
     // can reuse the same curve math to draw accurate piece outlines.
     window._iliGeom = { sampleSideCurve, pointsToPath, mirrorPoints };
 
+    // The pattern's drafted length (e.g. a 28cm mini skirt) was drafted
+    // against a specific reference crotch height (waist-to-floor along the
+    // leg). Scaling that same ratio onto the customer's own crotch height
+    // gives an equivalent hem placement on their body, instead of naively
+    // comparing the finished garment length to their raw leg measurement.
+    window._iliScaledLength = function(p, customerCrotchHeight){
+      if (customerCrotchHeight == null || !p.base.crotchHeight) return null;
+      const ratio = p.base.length / p.base.crotchHeight;
+      return ratio * customerCrotchHeight;
+    };
+
     function measurementsHtml(p){
       const customer = (window.getCustomerBodyMeasurements ? window.getCustomerBodyMeasurements().fields : {}) || {};
       const rows = [
         {label:'Waist', drafted:p.base.waist, yours:customer.waistGirth},
         {label:'Hip', drafted:p.base.hip, yours:customer.hipGirth},
-        {label:'Length', drafted:p.base.length, yours:customer.crotchHeight}
+        {label:'Length', drafted:p.base.length, yours: window._iliScaledLength(p, customer.crotchHeight)}
       ];
       return `
         <div style="width:100%;margin-bottom:20px;">
@@ -901,7 +912,7 @@ let PATTERNS = [
   {
     id:'pattern-2', name:'White Mini Skirt', trend:'Clean Girl', difficulty:'Beginner',
     time:'2-3 hrs', fabric:'Lightweight cotton, twill, or denim', image:'9efbbe16addf710e619484c72c59090f.jpg', emoji:'', yardageBase:1,
-    base:{waist:76,hip:99,length:28},
+    base:{waist:76,hip:99,length:28,crotchHeight:74},
     pieces:[
       {
         label:'Front', cut:'Cut 1 on fold', sideSA:0.375, hemSA:0.5, tileOverlap:0.5,
@@ -1260,7 +1271,7 @@ function renderDetail(){
   const fit = {
     waist: customer.waistGirth ?? p.base.waist,
     hip: customer.hipGirth ?? p.base.hip,
-    length: customer.crotchHeight ?? p.base.length
+    length: window._iliScaledLength(p, customer.crotchHeight) ?? p.base.length
   };
   const yardage = calcYardage(p, fit);
   const waistDiff = fit.waist - p.base.waist;
@@ -1487,6 +1498,8 @@ navigate('home');
   <label>Hip Girth (<span class="bd-unit-length">cm</span>) <input type="number" id="bd-hipGirth"></label>
   <label>Thigh Circumference (<span class="bd-unit-length">cm</span>) <input type="number" id="bd-thighGirth"></label>
   <label>Leg Length (Crotch Height) (<span class="bd-unit-length">cm</span>) <input type="number" id="bd-crotchHeight"></label>
+
+  <button id="bd-save" type="button" class="btn btn-primary" style="justify-content:center; margin-top:10px;">💾 Save measurements</button>
 </div>
 
 <script type="module">
@@ -1563,6 +1576,41 @@ navigate('home');
   // Exposed so other parts of the site (like pattern pages) can read the
   // customer's real entered measurements, always converted to cm/kg.
   window.getCustomerBodyMeasurements = collectProfile;
+
+  // Restore any previously saved measurements so a returning visitor
+  // doesn't have to retype everything. Stored values are always metric
+  // (collectProfile's own format), matching the form's default unit.
+  (function restoreSavedMeasurements(){
+    try {
+      const saved = localStorage.getItem('ili_measurements');
+      if (!saved) return;
+      const parsed = JSON.parse(saved);
+      if (parsed.gender) document.getElementById('bd-gender').value = parsed.gender;
+      if (parsed.fields) {
+        if (parsed.fields.height != null) document.getElementById('bd-height').value = parsed.fields.height;
+        if (parsed.fields.weight != null) document.getElementById('bd-weight').value = parsed.fields.weight;
+        lengthFieldIds.forEach(id => {
+          if (parsed.fields[id] != null) document.getElementById('bd-' + id).value = parsed.fields[id];
+        });
+      }
+    } catch (e) {
+      console.warn('Could not restore saved measurements:', e);
+    }
+  })();
+
+  // Save button: persists the current form values, then closes the
+  // profile modal so whatever page was underneath (home, a pattern, etc.)
+  // is visible again, same as clicking the X or clicking outside it.
+  document.getElementById('bd-save')?.addEventListener('click', () => {
+    try {
+      localStorage.setItem('ili_measurements', JSON.stringify(collectProfile()));
+    } catch (e) {
+      console.warn('Could not save measurements:', e);
+    }
+    const modal = document.getElementById('profileModal');
+    if (modal) modal.style.display = 'none';
+    if (typeof toast === 'function') toast('💾 Measurements saved!');
+  });
 
   function scheduleUpdate() {
     clearTimeout(debounceTimer);
