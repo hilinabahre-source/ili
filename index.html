@@ -1467,7 +1467,7 @@ function renderMyPatterns(){
     const pct = Math.round((done/p.steps.length)*100);
     const statusText = done===0 ? 'Saved · not started' : (done===p.steps.length ? 'Complete! 🎉' : `In progress · ${pct}%`);
     return `<div class="mp-card" onclick="navigate('detail','${p.id}')">
-      <div class="mp-thumb" style="background:${thumbGradient(TREND_COLOR[p.trend])}">${p.emoji}</div>
+      <div class="mp-thumb" style="background:${p.image?'#f9f5ef':thumbGradient(TREND_COLOR[p.trend])};overflow:hidden;">${p.image?`<img src="${p.image}" style="width:100%;height:100%;object-fit:cover;"/>`:p.emoji}</div>
       <div class="mp-info">
         <h3>${p.name}</h3>
         <div class="mp-status">${statusText}</div>
