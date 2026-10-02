@@ -35,25 +35,12 @@
 *{box-sizing:border-box;margin:0;padding:0;}
 html{scroll-behavior:smooth;}
 body{
-  background:
-    linear-gradient(180deg, #faf7f3 0%, #f0e7dc 100%);
+  background:#fdfbf6;
   color:var(--text);
   font-family:'Space Grotesk',sans-serif;
   min-height:100vh;
   padding-bottom:40px;
   position:relative;
-}
-body::before{
-  content:"";
-  position:fixed;
-  inset:0;
-  pointer-events:none;
-  background:
-    repeating-linear-gradient(90deg, rgba(18,49,77,0.026) 0 2px, transparent 2px 26px),
-    repeating-linear-gradient(0deg, rgba(18,49,77,0.018) 0 2px, transparent 2px 26px),
-    radial-gradient(circle at 50% 50%, rgba(58,122,183,0.08) 0 1px, transparent 1px 100%);
-  background-size: 36px 36px, 36px 36px, 18px 18px;
-  opacity:0.9;
 }
 h1,h2,h3,.display{font-family:'Unbounded',sans-serif;}
 a{color:inherit;text-decoration:none;}
@@ -80,7 +67,7 @@ img,svg{display:block;max-width:100%;}
   color:#0d1f32;
   transform:translateY(-1px);
 }
-.app-nav.garment-nav{background:#f4efe4;padding:10px 28px 6px;align-items:flex-start;}
+.app-nav.garment-nav{background:#fdfbf6;padding:10px 28px 6px;align-items:flex-start;}
 .garment-nav .brand-mark{background:#cfc6b2;color:#5c5340;border-color:rgba(92,83,64,0.24);box-shadow:none;}
 .garment-nav .brand-wordmark{color:#5c5340;}
 .clothesline-wrap-xl{position:relative;flex:1;display:flex;justify-content:center;align-items:flex-start;height:220px;margin:0 20px;overflow:visible;}
@@ -154,23 +141,9 @@ main{max-width:1180px;margin:0 auto;padding:0 24px;}
   stroke-linecap:round;
   stroke-linejoin:round;
 }
-.ili-sashiko .sashiko-stitch{
-  fill:none;
-  stroke:#f3f0ea;
-  stroke-width:4.2;
-  stroke-linecap:round;
-  stroke-linejoin:round;
-  stroke-dasharray:10 18;
-  opacity:0.82;
-}
+.ili-sashiko .sashiko-stitch,
 .ili-sashiko .sashiko-stitch-alt{
-  fill:none;
-  stroke:#f4d86b;
-  stroke-width:3.2;
-  stroke-linecap:round;
-  stroke-linejoin:round;
-  stroke-dasharray:8 16;
-  opacity:0.9;
+  display:none;
 }
 .hero-tagline{
   font-family:'Unbounded',sans-serif;
