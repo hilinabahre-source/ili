@@ -924,7 +924,13 @@ footer{text-align:center;padding:50px 20px 20px;color:var(--text-dimmer);font-si
       <div class="request-form-card">
         <h2>Submit Your Request</h2>
         <div class="field"><label>Pattern name or description</label><input type="text" id="reqName" placeholder="e.g. Oversized linen shirt with asymmetrical collar"></div>
-        <div class="field"><label>Details & inspiration</label><textarea id="reqDesc" placeholder="Describe the style, silhouette, any reference images or designers you love...&#10;&#10;(e.g., Pinterest link, Zendaya/Rihanna inspo, specific fit notes)&#10;"></textarea></div>
+        <div class="field">
+          <label>Details & inspiration</label>
+          <textarea id="reqDesc" placeholder="Describe the style, silhouette, any reference images or designers you love...&#10;&#10;(e.g., Pinterest link, Zendaya/Rihanna inspo, specific fit notes)&#10;"></textarea>
+          <button type="button" onclick="searchPinterest()" style="margin-top:8px;display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:100px;background:#faecef;border:1px solid #E60023;color:#E60023;font-weight:700;font-size:0.82rem;cursor:pointer;">
+            🔍 Search on Pinterest
+          </button>
+        </div>
         <button onclick="submitRequest()" class="btn-primary" style="margin-top:1rem;">Submit Request</button>
       </div>
       <div id="requestFeed" class="request-feed"></div>
@@ -1570,6 +1576,16 @@ function renderRequest(){
       <p class="req-desc">${req.desc.replace(/\n/g, '<br>')}</p>
     </div>
   `).reverse().join('');
+}
+
+// Opens Pinterest's own real search results in a new tab, pre-filled with
+// whatever the person has typed so far in the Details & inspiration field.
+// No API, no approval needed — just Pinterest's normal public search URL.
+function searchPinterest(){
+  const text = document.getElementById('reqDesc').value.trim();
+  if(!text){ toast('Type a bit of what you\'re looking for first ✨'); return; }
+  const url = 'https://www.pinterest.com/search/pins/?q=' + encodeURIComponent(text);
+  window.open(url, '_blank', 'noopener');
 }
 
 function submitRequest(){
