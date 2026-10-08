@@ -1,5 +1,4 @@
-import { state } from './state.js';
-import { navigate, render, toast } from './router.js';
+import { navigate } from './router.js';
 import { toggleSave } from './views/browse.js';
 import { renderDetail, toggleStep, resetProgress, showMiniJelly, hideMiniJelly } from './views/detail.js';
 import { openConstructionModal } from './views/construction.js';
@@ -16,9 +15,6 @@ Object.assign(window, {
   openConstructionModal, setFeedbackLevel, submitFeedback,
   submitRequest, searchPinterest, showMiniJelly, hideMiniJelly,
 });
-
-// Temporary bridges for code that is still inline in index.html.
-Object.assign(window, { state, render, toast });
 
 navigate('home');
 initJelly();
