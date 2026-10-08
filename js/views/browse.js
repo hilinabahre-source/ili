@@ -2,6 +2,7 @@ import { state, TREND_COLOR, DIFF_COLOR } from '../state.js';
 import { PATTERNS } from '../data/patterns.js';
 import { render, toast } from '../router.js';
 import { printPagePreview, thumbGradient } from '../lib/diagrams.js';
+import { syncPatternToCloud } from '../services/cloud-sync.js';
 
 /* ============================================================
    BROWSE

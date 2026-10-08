@@ -2,6 +2,7 @@ import { state, TREND_COLOR, DIFF_COLOR } from '../state.js';
 import { PATTERNS } from '../data/patterns.js';
 import { scaledLength } from '../lib/geometry.js';
 import { svgDiagram, constructionIcon, assemblyPieceSvg, miniJellySvg, thumbGradient } from '../lib/diagrams.js';
+import { syncPatternToCloud } from '../services/cloud-sync.js';
 
 /* ============================================================
    PATTERN DETAIL
