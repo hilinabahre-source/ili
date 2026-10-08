@@ -1,4 +1,11 @@
 import { state } from './state.js';
+import { renderHome } from './views/home.js';
+import { renderDonate } from './views/donate.js';
+import { renderRequest } from './views/request.js';
+import { renderFeedbackView } from './views/feedback.js';
+import { renderBrowse } from './views/browse.js';
+import { renderDetail } from './views/detail.js';
+import { renderMyPatterns } from './views/my-patterns.js';
 
 /* ============================================================
    NAVIGATION
